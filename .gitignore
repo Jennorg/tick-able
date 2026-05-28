@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# project custom ignores
+/AGENTS.md
+/agents.md
+/supabase/
+/n8n/
