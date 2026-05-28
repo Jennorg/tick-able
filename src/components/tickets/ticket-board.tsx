@@ -4,6 +4,7 @@ import { AlertTriangle, Tag, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
+import { cn } from "@/components/ui/button";
 
 interface Ticket {
   id: string;
@@ -28,9 +29,9 @@ const PRIORITIES = [
   {
     id: "low",
     name: "Baja",
-    color: "border-t-slate-400 bg-slate-50",
-    text: "text-slate-700",
-    dot: "bg-slate-400",
+    color: "border-t-gray-400 bg-gray-50",
+    text: "text-gray-700",
+    dot: "bg-gray-400",
   },
   {
     id: "medium",
@@ -79,11 +80,86 @@ export function TicketBoard({ initialTickets }: TicketBoardProps) {
     message: string;
     type: "success" | "error";
   } | null>(null);
+  const [hoveredTicketId, setHoveredTicketId] = React.useState<string | null>(null);
+  const [hoveredPosition, setHoveredPosition] = React.useState<"top" | "bottom" | null>(null);
 
   // Sync state if initialTickets change from filters
   React.useEffect(() => {
     setTickets(initialTickets);
   }, [initialTickets]);
+
+  const gridRef = React.useRef<HTMLDivElement>(null);
+
+  const handleGridMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Only scroll if clicking directly on the grid container or empty/header spaces (not cards/links/buttons)
+    const target = e.target as HTMLElement;
+    if (target.closest("li[draggable]") || target.closest("a, button, input, select, textarea")) {
+      return;
+    }
+
+    const gridContainer = e.currentTarget;
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startScrollLeft = gridContainer.scrollLeft;
+    const startScrollTop = window.scrollY || document.documentElement.scrollTop;
+    
+    gridContainer.style.cursor = "grabbing";
+    
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaX = moveEvent.clientX - startX;
+      const deltaY = moveEvent.clientY - startY;
+      gridContainer.scrollLeft = startScrollLeft - deltaX;
+      window.scrollTo(0, startScrollTop - deltaY);
+    };
+
+    const handleMouseUp = () => {
+      gridContainer.style.cursor = "";
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+  };
+
+  const handleColumnMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    // If the click is on a card (li) or anything inside a card, don't scroll
+    const target = e.target as HTMLElement;
+    if (target.closest("li[draggable]") || target.closest("a, button, input, select, textarea")) {
+      return;
+    }
+
+    const columnContainer = e.currentTarget;
+    const gridContainer = gridRef.current;
+    
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startScrollLeft = gridContainer ? gridContainer.scrollLeft : 0;
+    const startScrollTop = window.scrollY || document.documentElement.scrollTop;
+    
+    columnContainer.style.cursor = "grabbing";
+    if (gridContainer) gridContainer.style.cursor = "grabbing";
+    
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaX = moveEvent.clientX - startX;
+      const deltaY = moveEvent.clientY - startY;
+      
+      if (gridContainer) {
+        gridContainer.scrollLeft = startScrollLeft - deltaX;
+      }
+      window.scrollTo(0, startScrollTop - deltaY);
+    };
+
+    const handleMouseUp = () => {
+      columnContainer.style.cursor = "";
+      if (gridContainer) gridContainer.style.cursor = "";
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+  };
 
   const showToast = (
     message: string,
@@ -104,6 +180,8 @@ export function TicketBoard({ initialTickets }: TicketBoardProps) {
   const handleDragEnd = () => {
     setDraggedId(null);
     setDragOverColumn(null);
+    setHoveredTicketId(null);
+    setHoveredPosition(null);
   };
 
   const handleDragOver = (e: React.DragEvent, columnId: string) => {
@@ -111,10 +189,16 @@ export function TicketBoard({ initialTickets }: TicketBoardProps) {
     if (dragOverColumn !== columnId) {
       setDragOverColumn(columnId);
     }
+    if (e.target === e.currentTarget) {
+      setHoveredTicketId(null);
+      setHoveredPosition(null);
+    }
   };
 
   const handleDragLeave = () => {
     setDragOverColumn(null);
+    setHoveredTicketId(null);
+    setHoveredPosition(null);
   };
 
   const handleDrop = async (e: React.DragEvent, targetColumnId: string) => {
@@ -122,6 +206,15 @@ export function TicketBoard({ initialTickets }: TicketBoardProps) {
     setDragOverColumn(null);
 
     const ticketId = e.dataTransfer.getData("text/plain") || draggedId;
+    
+    // Capture hovered values before clearing state
+    const currentHoveredId = hoveredTicketId;
+    const currentHoveredPos = hoveredPosition;
+
+    setDraggedId(null);
+    setHoveredTicketId(null);
+    setHoveredPosition(null);
+
     if (!ticketId) return;
 
     const ticketToUpdate = tickets.find((t) => t.id === ticketId);
@@ -153,10 +246,22 @@ export function TicketBoard({ initialTickets }: TicketBoardProps) {
       }
     }
 
-    // Optimistically update UI
-    setTickets((prev) =>
-      prev.map((t) => (t.id === ticketId ? { ...t, ...updates } : t)),
-    );
+    // Optimistically update UI with reordering support
+    setTickets((prev) => {
+      const otherTickets = prev.filter((t) => t.id !== ticketId);
+      const updatedTicket = { ...ticketToUpdate, ...updates };
+
+      if (currentHoveredId) {
+        const targetIndex = otherTickets.findIndex((t) => t.id === currentHoveredId);
+        if (targetIndex !== -1) {
+          const insertAt = currentHoveredPos === "top" ? targetIndex : targetIndex + 1;
+          const reordered = [...otherTickets];
+          reordered.splice(insertAt, 0, updatedTicket);
+          return reordered;
+        }
+      }
+      return [...otherTickets, updatedTicket];
+    });
 
     try {
       const res = await fetch(`/api/tickets/${ticketId}`, {
@@ -236,7 +341,11 @@ export function TicketBoard({ initialTickets }: TicketBoardProps) {
       )}
 
       {/* Kanban Grid */}
-      <div className="flex flex-col lg:flex-row gap-4 overflow-x-auto pb-4 items-start select-none">
+      <div
+        ref={gridRef}
+        onMouseDown={handleGridMouseDown}
+        className="flex flex-col lg:flex-row gap-4 overflow-x-auto pb-4 items-start select-none no-scrollbar cursor-grab active:cursor-grabbing"
+      >
         {PRIORITIES.map((column) => {
           const columnTickets = tickets.filter((t) => {
             if (column.id === "resolved") {
@@ -267,116 +376,160 @@ export function TicketBoard({ initialTickets }: TicketBoardProps) {
                   <span
                     className={`h-2.5 w-2.5 rounded-full ${column.dot}`}
                   ></span>
-                  <h3 className="font-bold text-gray-800 text-sm">
+                  <h3 className="font-bold text-[#2b2d42] text-sm">
                     {column.name}
                   </h3>
                 </div>
-                <span className="text-xs bg-white border border-gray-150 px-2 py-0.5 rounded-full text-gray-500 font-semibold shadow-sm">
+                <span className="text-xs bg-white border border-gray-150 px-2 py-0.5 rounded-full text-[#8d99ae] font-semibold shadow-sm">
                   {columnTickets.length}
                 </span>
               </div>
 
               {/* Cards Container */}
-              <div className="flex-1 flex flex-col gap-3 min-h-[350px] max-h-[65vh] overflow-y-auto mt-3 py-1 px-0.5">
-                {columnTickets.map((ticket) => {
-                  const isBeingDragged = draggedId === ticket.id;
-                  const isCritical =
-                    ticket.ia_risk_level === "critical" ||
-                    ticket.ia_risk_level === "high";
+              <div
+                onMouseDown={handleColumnMouseDown}
+                className="flex-1 flex flex-col gap-3 min-h-[350px] mt-3 py-1 px-0.5 transition-all duration-300 cursor-grab active:cursor-grabbing"
+              >
+                {(() => {
+                  const visibleTickets = columnTickets;
+                  const isHoveredColumn = visibleTickets.some((t) => t.id === hoveredTicketId);
+                  const itemsToRender = [...visibleTickets];
+
+                  if (draggedId) {
+                    if (isHoveredColumn) {
+                      const hoveredIndex = visibleTickets.findIndex((t) => t.id === hoveredTicketId);
+                      const insertionIndex = hoveredPosition === "top" ? hoveredIndex : hoveredIndex + 1;
+                      itemsToRender.splice(insertionIndex, 0, { id: "placeholder-item" } as any);
+                    } else if (dragOverColumn === column.id) {
+                      itemsToRender.push({ id: "placeholder-item" } as any);
+                    }
+                  }
 
                   return (
-                    <li
-                      key={ticket.id}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, ticket.id)}
-                      onDragEnd={handleDragEnd}
-                      className={`bg-white rounded-xl shadow-sm p-4 border border-gray-150/60 hover:shadow-md hover:border-gray-200 transition-all cursor-grab active:cursor-grabbing relative overflow-hidden ${
-                        isBeingDragged
-                          ? "opacity-35 scale-95 border-dashed border-gray-300 shadow-none"
-                          : ""
-                      } ${isCritical ? "border-l-4 border-l-orange-500" : ""}`}
-                    >
-                      {ticket.ia_risk_level === "critical" && (
-                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-red-600 animate-pulse"></div>
-                      )}
+                    <>
+                      {itemsToRender.map((ticket, idx) => {
+                        if (ticket.id === "placeholder-item") {
+                          return (
+                            <div
+                              key="placeholder-item"
+                              className="border-2 border-dashed border-[#8d99ae]/60 rounded-xl bg-[#edf2f4]/50 animate-slide-open flex-shrink-0"
+                            />
+                          );
+                        }
 
-                      <div className="space-y-3">
-                        {/* Header Details */}
-                        <div className="flex items-start justify-between gap-2">
-                          <span className="text-[10px] text-gray-400 font-mono tracking-tight">
-                            #{ticket.id.split("-")[0]}
-                          </span>
-                          {ticket.categories && (
-                            <span className="text-[9px] font-semibold bg-gray-100 text-gray-600 px-2 py-0.5 rounded flex items-center gap-1">
-                              <Tag className="w-2.5 h-2.5" />
-                              {ticket.categories.name}
-                            </span>
-                          )}
-                        </div>
+                        const isCritical =
+                          ticket.ia_risk_level === "critical" ||
+                          ticket.ia_risk_level === "high";
+                        const isBeingDragged = draggedId === ticket.id;
 
-                        {/* Title (Clickable to Details) */}
-                        <Link
-                          href={`/tickets/${ticket.id}`}
-                          className="block group"
-                        >
-                          <h4 className="font-semibold text-gray-900 group-hover:text-blue-600 text-sm leading-tight transition-colors line-clamp-2">
-                            {ticket.title}
-                          </h4>
-                        </Link>
-
-                        {/* Footer Details */}
-                        <div className="flex items-center justify-between pt-2 border-t border-gray-50 text-xs">
-                          {/* Assignee / Solicitor */}
-                          <div className="flex items-center gap-1 text-gray-500 max-w-[130px]">
-                            <User className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                            <span className="truncate">
-                              {ticket.profiles?.full_name || "Sin asignar"}
-                            </span>
-                          </div>
-
-                          {/* Status Badge */}
-                          <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${
-                              STATUS_COLORS[ticket.status] ||
-                              "bg-gray-100 text-gray-600"
-                            }`}
-                          >
-                            {ticket.status.toUpperCase()}
-                          </span>
-                        </div>
-
-                        {/* IA Risk Level Indicator (Warning Icon) */}
-                        {ticket.ia_risk_level && (
-                          <div className="flex items-center gap-1.5 pt-1.5 border-t border-dashed border-gray-50">
-                            <span
-                              className={`h-2 w-2 rounded-full ${
-                                ticket.ia_risk_level === "critical"
-                                  ? "bg-red-600 animate-pulse"
-                                  : ticket.ia_risk_level === "high"
-                                    ? "bg-orange-500"
-                                    : ticket.ia_risk_level === "medium"
-                                      ? "bg-yellow-500"
-                                      : "bg-green-500"
-                              }`}
-                            ></span>
-                            <span className="text-[10px] text-gray-500 font-medium capitalize">
-                              Riesgo IA: {ticket.ia_risk_level}
-                            </span>
-                            {isCritical && (
-                              <AlertTriangle className="h-3 w-3 text-orange-500 ml-auto" />
+                        return (
+                          <li
+                            key={ticket.id}
+                            draggable
+                            onDragStart={(e) => handleDragStart(e, ticket.id)}
+                            onDragEnd={handleDragEnd}
+                            onDragOver={(e) => {
+                              if (draggedId === ticket.id) return;
+                              e.preventDefault();
+                              e.stopPropagation();
+                              
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              const relativeY = e.clientY - rect.top;
+                              const isTop = relativeY < rect.height / 2;
+                              
+                              setHoveredTicketId(ticket.id);
+                              setHoveredPosition(isTop ? "top" : "bottom");
+                            }}
+                            className={cn(
+                              "bg-white rounded-xl shadow-sm p-4 border border-gray-150/60 hover:shadow-md hover:border-gray-200 cursor-grab active:cursor-grabbing relative overflow-hidden flex-shrink-0 transition-all duration-250 ease-out",
+                              isCritical && "border-l-4 border-l-orange-500",
+                              isBeingDragged && "opacity-30 scale-95 border-dashed border-gray-300 shadow-none pointer-events-none"
                             )}
-                          </div>
-                        )}
-                      </div>
-                    </li>
-                  );
-                })}
+                          >
+                            {ticket.ia_risk_level === "critical" && (
+                              <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-red-600 animate-pulse"></div>
+                            )}
 
-                {columnTickets.length === 0 && (
-                  <div className="flex-1 flex items-center justify-center border-2 border-dashed border-gray-200 rounded-xl p-8 text-center text-gray-400/80 text-xs">
-                    Suelta un ticket aquí
-                  </div>
-                )}
+                            <div className="space-y-3">
+                              {/* Header Details */}
+                              <div className="flex items-start justify-between gap-2">
+                                <span className="text-[10px] text-[#8d99ae] font-mono tracking-tight">
+                                  #{ticket.id.split("-")[0]}
+                                </span>
+                                {ticket.categories && (
+                                  <span className="text-[9px] font-semibold bg-gray-100 text-[#2b2d42] px-2 py-0.5 rounded flex items-center gap-1">
+                                    <Tag className="w-2.5 h-2.5" />
+                                    {ticket.categories.name}
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Title (Clickable to Details) */}
+                              <Link
+                                href={`/tickets/${ticket.id}`}
+                                className="block group"
+                              >
+                                <h4 className="font-semibold text-[#2b2d42] group-hover:text-blue-600 text-sm leading-tight transition-colors line-clamp-2">
+                                  {ticket.title}
+                                </h4>
+                              </Link>
+
+                              {/* Footer Details */}
+                              <div className="flex items-center justify-between pt-2 border-t border-gray-50 text-xs">
+                                {/* Assignee / Solicitor */}
+                                <div className="flex items-center gap-1 text-[#8d99ae] max-w-[130px]">
+                                  <User className="w-3.5 h-3.5 text-[#8d99ae] shrink-0" />
+                                  <span className="truncate">
+                                    {ticket.profiles?.full_name || "Sin asignar"}
+                                  </span>
+                                </div>
+
+                                {/* Status Badge */}
+                                <span
+                                  className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${
+                                    STATUS_COLORS[ticket.status] ||
+                                    "bg-gray-100 text-[#8d99ae]"
+                                  }`}
+                                >
+                                  {ticket.status.toUpperCase()}
+                                </span>
+                              </div>
+
+                              {/* IA Risk Level Indicator (Warning Icon) */}
+                              {ticket.ia_risk_level && (
+                                <div className="flex items-center gap-1.5 pt-1.5 border-t border-dashed border-gray-50">
+                                  <span
+                                    className={`h-2 w-2 rounded-full ${
+                                      ticket.ia_risk_level === "critical"
+                                        ? "bg-red-600 animate-pulse"
+                                        : ticket.ia_risk_level === "high"
+                                          ? "bg-orange-500"
+                                          : ticket.ia_risk_level === "medium"
+                                            ? "bg-yellow-500"
+                                            : "bg-green-500"
+                                    }`}
+                                  ></span>
+                                   <span className="text-[10px] text-[#8d99ae] font-medium capitalize">
+                                    Riesgo IA: {ticket.ia_risk_level}
+                                  </span>
+                                  {isCritical && (
+                                    <AlertTriangle className="h-3 w-3 text-orange-500 ml-auto" />
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </li>
+                        );
+                      })}
+
+                      {visibleTickets.length === 0 && (!draggedId || dragOverColumn !== column.id) && (
+                        <div className="flex-1 flex items-center justify-center border-2 border-dashed border-gray-200 rounded-xl p-8 text-center text-[#8d99ae]/80 text-xs">
+                          Suelta un ticket aquí
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
             </ul>
           );

@@ -57,10 +57,10 @@ export default function CategoriesPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-[#2b2d42]">
             Gestión de Categorías
           </h1>
-          <p className="text-gray-500">
+          <p className="text-[#8d99ae]">
             Administra las categorías de los tickets.
           </p>
         </div>
@@ -103,7 +103,7 @@ export default function CategoriesPage() {
                 <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
               </div>
             ) : categories.length === 0 ? (
-              <p className="text-center py-8 text-gray-500">
+              <p className="text-center py-8 text-[#8d99ae]">
                 No hay categorías creadas.
               </p>
             ) : (
@@ -114,10 +114,10 @@ export default function CategoriesPage() {
                     className="py-4 flex justify-between items-start"
                   >
                     <div>
-                      <h4 className="font-semibold text-gray-900">
+                      <h4 className="font-semibold text-[#2b2d42]">
                         {cat.name}
                       </h4>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-[#8d99ae]">
                         {cat.description || "Sin descripción"}
                       </p>
                     </div>

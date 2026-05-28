@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
+import { triggerHighPriorityAlert } from "@/lib/n8n";
 
 export async function GET(
   request: Request,
@@ -42,7 +43,7 @@ export async function PATCH(
   // Fetch current ticket to compare and get creator
   const { data: currentTicket } = await supabase
     .from("tickets")
-    .select("status, assigned_to, created_by, title")
+    .select("status, assigned_to, created_by, title, priority")
     .eq("id", id)
     .single();
 
@@ -92,6 +93,18 @@ export async function PATCH(
       user_id: currentTicket.created_by,
       ticket_id: id,
       message: `Tu ticket "${currentTicket.title}" ha sido escalado a prioridad URGENTE.`,
+    });
+  }
+
+  // Trigger n8n Slack alert if priority is updated to high or urgent
+  if (
+    (priority === "high" || priority === "urgent") &&
+    priority !== currentTicket.priority
+  ) {
+    await triggerHighPriorityAlert({
+      id: id,
+      title: currentTicket.title,
+      priority: priority,
     });
   }
 

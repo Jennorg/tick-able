@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { geminiModel } from "@/lib/gemini";
 import { createClient } from "@/lib/supabase-server";
+import { triggerTicketConfirmation, triggerHighPriorityAlert } from "@/lib/n8n";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -41,6 +42,25 @@ export async function POST(request: Request) {
   if (ticketError)
     return NextResponse.json({ error: ticketError.message }, { status: 500 });
 
+  // Trigger n8n confirmation email
+  if (user.email) {
+    await triggerTicketConfirmation({
+      id: ticket.id,
+      title: ticket.title,
+      email: user.email,
+      priority: ticket.priority,
+    });
+  }
+
+  // Trigger n8n Slack alert if high priority or urgent
+  if (ticket.priority === "high" || ticket.priority === "urgent") {
+    await triggerHighPriorityAlert({
+      id: ticket.id,
+      title: ticket.title,
+      priority: ticket.priority,
+    });
+  }
+
   // 2. Call Gemini IA Analysis
   const prompt = `
     Eres un asistente de soporte técnico experto. Analiza el siguiente ticket y devuelve un JSON estrictamente con este formato, sin texto adicional:
@@ -74,7 +94,7 @@ export async function POST(request: Request) {
         ia_risk_level: iaResult.riskLevel,
         ia_raw_json: iaResult,
         ia_prompt: prompt,
-        ia_model: "gemini-1.5-flash",
+        ia_model: "gemini-2.5-flash",
         ia_latency_ms: latency,
         ia_tokens_used: tokensUsed,
       })
@@ -85,7 +105,7 @@ export async function POST(request: Request) {
       {
         ticket_id: ticket.id,
         prompt,
-        model: "gemini-1.5-flash",
+        model: "gemini-2.5-flash",
         latency_ms: latency,
         tokens_used: tokensUsed,
         result: iaResult,

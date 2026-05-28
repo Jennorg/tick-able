@@ -40,10 +40,10 @@ export default function MetricsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-2xl font-bold text-[#2b2d42]">
           Métricas del Sistema
         </h1>
-        <p className="text-gray-500">
+        <p className="text-[#8d99ae]">
           Visualiza el rendimiento y el uso de IA.
         </p>
       </div>
@@ -55,8 +55,8 @@ export default function MetricsPage() {
               <Ticket className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500">Abiertos</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-[#8d99ae]">Abiertos</p>
+              <p className="text-2xl font-bold text-[#2b2d42]">
                 {data.status.open || 0}
               </p>
             </div>
@@ -68,8 +68,8 @@ export default function MetricsPage() {
               <Ticket className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500">Resueltos</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-[#8d99ae]">Resueltos</p>
+              <p className="text-2xl font-bold text-[#2b2d42]">
                 {data.status.resolved || 0}
               </p>
             </div>
@@ -81,8 +81,8 @@ export default function MetricsPage() {
               <Zap className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500">Tokens IA</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm font-medium text-[#8d99ae]">Tokens IA</p>
+              <p className="text-2xl font-bold text-[#2b2d42]">
                 {data.totalTokens.toLocaleString()}
               </p>
             </div>
@@ -94,10 +94,10 @@ export default function MetricsPage() {
               <DollarSign className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500">
+              <p className="text-sm font-medium text-[#8d99ae]">
                 Costo Est. ($)
               </p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-[#2b2d42]">
                 {data.estimatedCost.toFixed(4)}
               </p>
             </div>
@@ -123,7 +123,7 @@ export default function MetricsPage() {
                     key={status}
                     className="flex justify-between items-center"
                   >
-                    <span className="capitalize text-gray-600">
+                    <span className="capitalize text-[#2b2d42]">
                       {status.replace("_", " ")}
                     </span>
                     <div className="flex items-center gap-4 flex-1 mx-4">
@@ -161,7 +161,7 @@ export default function MetricsPage() {
                     key={priority}
                     className="flex justify-between items-center"
                   >
-                    <span className="capitalize text-gray-600">{priority}</span>
+                    <span className="capitalize text-[#2b2d42]">{priority}</span>
                     <div className="flex items-center gap-4 flex-1 mx-4">
                       <div className="h-2 bg-gray-100 rounded-full flex-1 overflow-hidden">
                         <div
@@ -197,7 +197,7 @@ export default function MetricsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="border-b text-sm font-semibold text-gray-500 uppercase">
+                <tr className="border-b text-sm font-semibold text-[#8d99ae] uppercase">
                   <th className="py-3 px-4">Agente</th>
                   <th className="py-3 px-4 text-center">Asignados</th>
                   <th className="py-3 px-4 text-center">Cerrados</th>
@@ -207,7 +207,7 @@ export default function MetricsPage() {
               <tbody className="divide-y">
                 {data.agentStats.map((agent) => (
                   <tr key={agent.name} className="text-sm">
-                    <td className="py-4 px-4 font-medium text-gray-900">
+                    <td className="py-4 px-4 font-medium text-[#2b2d42]">
                       {agent.name}
                     </td>
                     <td className="py-4 px-4 text-center">{agent.assigned}</td>

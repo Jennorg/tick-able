@@ -93,9 +93,9 @@ export function AuthForm({ mode }: AuthFormProps) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f5f5f3] p-4 font-sans antialiased">
+    <div className="min-h-screen flex items-center justify-center bg-[#edf2f4] p-4 font-sans antialiased">
       {/* Outer Card */}
-      <div className="relative flex flex-col md:flex-row w-full max-w-4xl bg-[#111e30] rounded-2xl overflow-hidden shadow-2xl min-h-[640px] md:min-h-[600px] transition-all duration-300">
+      <div className="relative flex flex-col md:flex-row w-full max-w-4xl bg-[#2b2d42] rounded-2xl overflow-hidden shadow-2xl min-h-[640px] md:min-h-[600px] transition-all duration-300">
         {/* ==================== REGISTER FORM (Left Back Layer) ==================== */}
         <div
           className={`w-full md:w-[55%] p-8 md:p-12 flex flex-col justify-center transition-all duration-700 ease-in-out md:absolute md:left-0 md:top-0 md:bottom-0 ${
@@ -106,28 +106,28 @@ export function AuthForm({ mode }: AuthFormProps) {
         >
           {/* Top Left Tabs (visible in signup state on desktop/mobile) */}
           <div className="flex justify-end mb-6 md:mb-8">
-            <div className="inline-flex p-1 bg-[#17273e] rounded-full text-xs font-semibold select-none">
+            <div className="inline-flex p-1 bg-[#8d99ae]/20 rounded-full text-xs font-semibold select-none">
               <a
                 href="/login"
                 onClick={(e) => handleToggle(e, "login")}
                 className={`px-5 py-1.5 rounded-full transition-all duration-300 ${
                   activeMode === "login"
-                    ? "bg-[#de5648] text-white shadow-md"
-                    : "text-slate-400 hover:text-white"
+                    ? "bg-[#ef233c] text-white shadow-md"
+                    : "text-[#8d99ae] hover:text-white"
                 }`}
               >
-                Sign In
+                Ingresar
               </a>
               <a
                 href="/register"
                 onClick={(e) => handleToggle(e, "register")}
                 className={`px-5 py-1.5 rounded-full transition-all duration-300 ${
                   activeMode === "register"
-                    ? "bg-[#de5648] text-white shadow-md"
-                    : "text-slate-400 hover:text-white"
+                    ? "bg-[#ef233c] text-white shadow-md"
+                    : "text-[#8d99ae] hover:text-white"
                 }`}
               >
-                Sign Up
+                Registrarse
               </a>
             </div>
           </div>
@@ -140,52 +140,52 @@ export function AuthForm({ mode }: AuthFormProps) {
             <div className="flex flex-col space-y-1.5">
               <label
                 htmlFor="regFullName"
-                className="text-[10px] font-bold tracking-widest text-slate-400 uppercase"
+                className="text-[10px] font-bold tracking-widest text-[#8d99ae] uppercase"
               >
-                Full Name
+                Nombre Completo
               </label>
               <input
                 id="regFullName"
                 name="fullName"
                 type="text"
-                placeholder="Enter your full name"
+                placeholder="Ingresa tu nombre completo"
                 required
-                className="bg-transparent border-0 border-b border-slate-700 py-1.5 text-sm text-white focus:outline-none focus:border-[#de5648] transition-colors placeholder:text-slate-600 w-full"
+                className="bg-transparent border-0 border-b border-[#8d99ae]/40 py-1.5 text-sm text-white focus:outline-none focus:border-[#ef233c] transition-colors placeholder:text-[#8d99ae]/50 w-full"
               />
             </div>
 
             <div className="flex flex-col space-y-1.5">
               <label
                 htmlFor="regEmail"
-                className="text-[10px] font-bold tracking-widest text-slate-400 uppercase"
+                className="text-[10px] font-bold tracking-widest text-[#8d99ae] uppercase"
               >
-                E-mail
+                Correo Electrónico
               </label>
               <input
                 id="regEmail"
                 name="email"
                 type="email"
-                placeholder="Enter your e-mail address"
+                placeholder="tu@ejemplo.com"
                 required
-                className="bg-transparent border-0 border-b border-slate-700 py-1.5 text-sm text-white focus:outline-none focus:border-[#de5648] transition-colors placeholder:text-slate-600 w-full"
+                className="bg-transparent border-0 border-b border-[#8d99ae]/40 py-1.5 text-sm text-white focus:outline-none focus:border-[#ef233c] transition-colors placeholder:text-[#8d99ae]/50 w-full"
               />
             </div>
 
             <div className="flex flex-col space-y-1.5">
               <label
                 htmlFor="regPassword"
-                className="text-[10px] font-bold tracking-widest text-slate-400 uppercase"
+                className="text-[10px] font-bold tracking-widest text-[#8d99ae] uppercase"
               >
-                Password
+                Contraseña
               </label>
               <input
                 id="regPassword"
                 name="password"
                 type="password"
-                placeholder="xxxxxxx"
+                placeholder="••••••••"
                 required
                 minLength={6}
-                className="bg-transparent border-0 border-b border-slate-700 py-1.5 text-sm text-white focus:outline-none focus:border-[#de5648] transition-colors placeholder:text-slate-600 w-full"
+                className="bg-transparent border-0 border-b border-[#8d99ae]/40 py-1.5 text-sm text-white focus:outline-none focus:border-[#ef233c] transition-colors placeholder:text-[#8d99ae]/50 w-full"
               />
             </div>
 
@@ -193,9 +193,9 @@ export function AuthForm({ mode }: AuthFormProps) {
             <div className="flex flex-col space-y-1.5">
               <label
                 htmlFor="regRole"
-                className="text-[10px] font-bold tracking-widest text-slate-400 uppercase"
+                className="text-[10px] font-bold tracking-widest text-[#8d99ae] uppercase"
               >
-                Role
+                Rol
               </label>
               <div className="relative">
                 <select
@@ -203,26 +203,26 @@ export function AuthForm({ mode }: AuthFormProps) {
                   name="role"
                   defaultValue="user"
                   required
-                  className="bg-transparent border-0 border-b border-slate-700 py-1.5 text-sm text-white focus:outline-none focus:border-[#de5648] transition-colors w-full appearance-none cursor-pointer pr-8"
+                  className="bg-transparent border-0 border-b border-[#8d99ae]/40 py-1.5 text-sm text-white focus:outline-none focus:border-[#ef233c] transition-colors w-full appearance-none cursor-pointer pr-8"
                 >
-                  <option value="user" className="bg-[#111e30] text-white">
-                    Usuario Final (User)
+                  <option value="user" className="bg-[#2b2d42] text-white">
+                    Usuario Final
                   </option>
-                  <option value="agent" className="bg-[#111e30] text-white">
-                    Agente de Soporte (Agent)
+                  <option value="agent" className="bg-[#2b2d42] text-white">
+                    Agente de Soporte
                   </option>
-                  <option value="admin" className="bg-[#111e30] text-white">
-                    Administrador (Admin)
+                  <option value="admin" className="bg-[#2b2d42] text-white">
+                    Administrador
                   </option>
                 </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-slate-400">
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-[#8d99ae]">
                   <svg
                     className="h-4 w-4 fill-none stroke-currentColor"
                     viewBox="0 0 24 24"
                     role="img"
-                    aria-label="Dropdown arrow"
+                    aria-label="Flecha hacia abajo"
                   >
-                    <title>Dropdown arrow</title>
+                    <title>Flecha hacia abajo</title>
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -247,7 +247,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                 <div
                   className={`w-4 h-4 rounded border transition-colors flex items-center justify-center ${
                     agreed
-                      ? "bg-[#de5648] border-[#de5648]"
+                      ? "bg-[#ef233c] border-[#ef233c]"
                       : "border-slate-600 group-hover:border-slate-400 bg-transparent"
                   }`}
                 >
@@ -256,17 +256,17 @@ export function AuthForm({ mode }: AuthFormProps) {
                   )}
                 </div>
               </div>
-              <span className="leading-tight">
-                By signing up you agree{" "}
-                <span className="underline decoration-1 decoration-slate-400 underline-offset-4 hover:text-white transition-colors">
-                  Terms & Conditions
+              <span className="leading-tight text-[#8d99ae] group-hover:text-white transition-colors">
+                Al registrarte, aceptas los{" "}
+                <span className="underline decoration-1 decoration-[#8d99ae] underline-offset-4 hover:text-white transition-colors">
+                  Términos y Condiciones
                 </span>
               </span>
             </label>
 
             {/* Error banner */}
             {activeMode === "register" && error && (
-              <div className="text-xs text-[#de5648] bg-[#de5648]/10 border border-[#de5648]/20 p-2.5 rounded-lg">
+              <div className="text-xs text-[#ef233c] bg-[#ef233c]/10 border border-[#ef233c]/20 p-2.5 rounded-lg">
                 {error}
               </div>
             )}
@@ -276,7 +276,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               <button
                 type="submit"
                 disabled={loading || !agreed}
-                className="bg-[#de5648] text-white text-sm font-semibold px-8 py-2.5 rounded-full hover:bg-[#de5648]/90 active:scale-95 transition-all shadow-lg flex items-center justify-center min-w-[120px] disabled:opacity-50 disabled:pointer-events-none"
+                className="bg-[#ef233c] text-white text-sm font-semibold px-8 py-2.5 rounded-full hover:bg-[#d90429] active:scale-95 transition-all shadow-lg shadow-red-600/10 flex items-center justify-center min-w-[120px] disabled:opacity-50 disabled:pointer-events-none"
               >
                 {loading ? (
                   <svg
@@ -285,9 +285,9 @@ export function AuthForm({ mode }: AuthFormProps) {
                     fill="none"
                     viewBox="0 0 24 24"
                     role="img"
-                    aria-label="Loading spinner"
+                    aria-label="Cargando"
                   >
-                    <title>Loading</title>
+                    <title>Cargando</title>
                     <circle
                       className="opacity-25"
                       cx="12"
@@ -303,7 +303,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                     ></path>
                   </svg>
                 ) : (
-                  "Sign Up"
+                  "Crear Cuenta"
                 )}
               </button>
             </div>
@@ -320,28 +320,28 @@ export function AuthForm({ mode }: AuthFormProps) {
         >
           {/* Top Right Tabs */}
           <div className="flex justify-end mb-6 md:mb-8">
-            <div className="inline-flex p-1 bg-[#17273e] rounded-full text-xs font-semibold select-none">
+            <div className="inline-flex p-1 bg-[#8d99ae]/20 rounded-full text-xs font-semibold select-none">
               <a
                 href="/login"
                 onClick={(e) => handleToggle(e, "login")}
                 className={`px-5 py-1.5 rounded-full transition-all duration-300 ${
                   activeMode === "login"
-                    ? "bg-[#de5648] text-white shadow-md"
-                    : "text-slate-400 hover:text-white"
+                    ? "bg-[#ef233c] text-white shadow-md"
+                    : "text-[#8d99ae] hover:text-white"
                 }`}
               >
-                Sign In
+                Ingresar
               </a>
               <a
                 href="/register"
                 onClick={(e) => handleToggle(e, "register")}
                 className={`px-5 py-1.5 rounded-full transition-all duration-300 ${
                   activeMode === "register"
-                    ? "bg-[#de5648] text-white shadow-md"
-                    : "text-slate-400 hover:text-white"
+                    ? "bg-[#ef233c] text-white shadow-md"
+                    : "text-[#8d99ae] hover:text-white"
                 }`}
               >
-                Sign Up
+                Registrarse
               </a>
             </div>
           </div>
@@ -354,40 +354,40 @@ export function AuthForm({ mode }: AuthFormProps) {
             <div className="flex flex-col space-y-2">
               <label
                 htmlFor="loginEmail"
-                className="text-[10px] font-bold tracking-widest text-slate-400 uppercase"
+                className="text-[10px] font-bold tracking-widest text-[#8d99ae] uppercase"
               >
-                E-mail
+                Correo Electrónico
               </label>
               <input
                 id="loginEmail"
                 name="email"
                 type="email"
-                placeholder="Enter your e-mail address"
+                placeholder="tu@ejemplo.com"
                 required
-                className="bg-transparent border-0 border-b border-slate-700 py-2 text-sm text-white focus:outline-none focus:border-[#de5648] transition-colors placeholder:text-slate-600 w-full"
+                className="bg-transparent border-0 border-b border-[#8d99ae]/40 py-2 text-sm text-white focus:outline-none focus:border-[#ef233c] transition-colors placeholder:text-[#8d99ae]/50 w-full"
               />
             </div>
 
             <div className="flex flex-col space-y-2">
               <label
                 htmlFor="loginPassword"
-                className="text-[10px] font-bold tracking-widest text-slate-400 uppercase"
+                className="text-[10px] font-bold tracking-widest text-[#8d99ae] uppercase"
               >
-                Password
+                Contraseña
               </label>
               <input
                 id="loginPassword"
                 name="password"
                 type="password"
-                placeholder="xxxxxxx"
+                placeholder="••••••••"
                 required
-                className="bg-transparent border-0 border-b border-slate-700 py-2 text-sm text-white focus:outline-none focus:border-[#de5648] transition-colors placeholder:text-slate-600 w-full"
+                className="bg-transparent border-0 border-b border-[#8d99ae]/40 py-2 text-sm text-white focus:outline-none focus:border-[#ef233c] transition-colors placeholder:text-[#8d99ae]/50 w-full"
               />
             </div>
 
             {/* Error banner */}
             {activeMode === "login" && error && (
-              <div className="text-xs text-[#de5648] bg-[#de5648]/10 border border-[#de5648]/20 p-3 rounded-lg">
+              <div className="text-xs text-[#ef233c] bg-[#ef233c]/10 border border-[#ef233c]/20 p-3 rounded-lg">
                 {error}
               </div>
             )}
@@ -397,7 +397,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="bg-[#de5648] text-white text-sm font-semibold px-8 py-2.5 rounded-full hover:bg-[#de5648]/90 active:scale-95 transition-all shadow-lg flex items-center justify-center min-w-[120px] disabled:opacity-50 disabled:pointer-events-none"
+                className="bg-[#ef233c] text-white text-sm font-semibold px-8 py-2.5 rounded-full hover:bg-[#d90429] active:scale-95 transition-all shadow-lg shadow-red-600/10 flex items-center justify-center min-w-[120px] disabled:opacity-50 disabled:pointer-events-none"
               >
                 {loading ? (
                   <svg
@@ -406,9 +406,9 @@ export function AuthForm({ mode }: AuthFormProps) {
                     fill="none"
                     viewBox="0 0 24 24"
                     role="img"
-                    aria-label="Loading spinner"
+                    aria-label="Cargando"
                   >
-                    <title>Loading</title>
+                    <title>Cargando</title>
                     <circle
                       className="opacity-25"
                       cx="12"
@@ -424,7 +424,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                     ></path>
                   </svg>
                 ) : (
-                  "Sign In"
+                  "Iniciar Sesión"
                 )}
               </button>
             </div>
@@ -433,7 +433,7 @@ export function AuthForm({ mode }: AuthFormProps) {
 
         {/* ==================== SLIDING CORAL VISUAL PANEL (Front Layer) ==================== */}
         <div
-          className={`w-full md:w-[45%] bg-[#de5648] text-white p-8 md:p-12 flex flex-col justify-between items-center text-center select-none overflow-hidden transition-all duration-700 ease-in-out md:absolute md:top-0 md:bottom-0 md:z-20 min-h-[220px] md:min-h-0 ${
+          className={`w-full md:w-[45%] bg-[#ef233c] text-white p-8 md:p-12 flex flex-col justify-between items-center text-center select-none overflow-hidden transition-all duration-700 ease-in-out md:absolute md:top-0 md:bottom-0 md:z-20 min-h-[220px] md:min-h-0 ${
             activeMode === "login"
               ? "md:left-0 md:translate-x-0"
               : "md:left-0 md:translate-x-[122.22%]"
@@ -450,9 +450,9 @@ export function AuthForm({ mode }: AuthFormProps) {
               strokeLinecap="round"
               strokeLinejoin="round"
               role="img"
-              aria-label="Planet icon"
+              aria-label="Icono de planeta"
             >
-              <title>Planet</title>
+              <title>Planeta</title>
               <circle cx="50" cy="50" r="20" />
               <path d="M 22 62 C 32 42, 68 42, 78 62" />
               <path d="M 15 57 C 28 85, 72 85, 85 57" />
@@ -465,7 +465,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           {/* Middle Text */}
           <div className="max-w-[280px] my-6">
             <h2 className="text-xl md:text-2xl font-light tracking-wide leading-relaxed">
-              Be part of our awesome team and have fun with us
+              Sé parte de nuestro increíble equipo y diviértete con nosotros
             </h2>
           </div>
 
@@ -480,9 +480,9 @@ export function AuthForm({ mode }: AuthFormProps) {
               strokeLinecap="round"
               strokeLinejoin="round"
               role="img"
-              aria-label="Rocket launch illustration"
+              aria-label="Ilustración de lanzamiento de cohete"
             >
-              <title>Rocket Launch</title>
+              <title>Lanzamiento de Cohete</title>
               <path
                 d="M 20 160 C 60 145, 180 145, 220 160"
                 strokeWidth="1.5"

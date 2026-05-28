@@ -71,7 +71,7 @@ export default function NewTicketPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">Crear Nuevo Ticket</CardTitle>
-          <p className="text-gray-500">
+          <p className="text-[#8d99ae]">
             Describe tu problema detalladamente para que podamos ayudarte.
           </p>
         </CardHeader>

@@ -2,8 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { geminiModel } from "@/lib/gemini";
 import { createClient } from "@/lib/supabase-server";
+import { triggerTicketConfirmation, triggerHighPriorityAlert } from "@/lib/n8n";
+import { headers } from "next/headers";
 
 export async function createTicket(formData: FormData) {
   const supabase = await createClient();
@@ -20,7 +21,7 @@ export async function createTicket(formData: FormData) {
   const priority = formData.get("priority") as string;
   const categoryId = formData.get("categoryId") as string;
 
-  // 1. Insert ticket
+  // 1. Insert ticket immediately
   const { data: ticket, error: ticketError } = await supabase
     .from("tickets")
     .insert({
@@ -37,55 +38,38 @@ export async function createTicket(formData: FormData) {
     return { error: ticketError.message };
   }
 
-  // 2. Trigger AI Analysis (Async but we'll wait for the demo)
-  try {
-    const prompt = `
-      Eres un asistente de soporte técnico. Analiza el siguiente ticket y devuelve un JSON estrictamente con este formato:
-      {
-        "summary": "resumen del problema en una frase",
-        "classification": "categoría detectada (hardware, software, red, etc.)",
-        "suggestions": "respuesta sugerida al usuario, profesional y clara",
-        "riskLevel": "critical, high, medium o low"
-      }
-      Ticket: Título: ${title} Descripción: ${description}
-    `;
-
-    const startTime = Date.now();
-    const result = await geminiModel.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-    const iaData = JSON.parse(text);
-    const latency = Date.now() - startTime;
-
-    // Update ticket with IA data
-    await supabase
-      .from("tickets")
-      .update({
-        ia_summary: iaData.summary,
-        ia_classification: iaData.classification,
-        ia_suggestions: iaData.suggestions,
-        ia_risk_level: iaData.riskLevel,
-        ia_raw_json: iaData,
-        ia_prompt: prompt,
-        ia_model: "gemini-1.5-flash",
-        ia_latency_ms: latency,
-        // tokens_used: response.usageMetadata?.totalTokenCount || 0,
-      })
-      .eq("id", ticket.id);
-
-    // Audit log
-    await supabase.from("ia_audit_log").insert({
-      ticket_id: ticket.id,
-      prompt,
-      model: "gemini-1.5-flash",
-      latency_ms: latency,
-      result: iaData,
-    });
-  } catch (error) {
-    console.error("IA Analysis failed:", error);
-    // We don't fail the ticket creation if IA fails
+  // 2. Fire n8n webhooks (non-blocking, errors are caught silently)
+  if (user.email) {
+    triggerTicketConfirmation({
+      id: ticket.id,
+      title: ticket.title,
+      email: user.email,
+      priority: ticket.priority,
+    }).catch((e) => console.error("[n8n] Confirmation webhook failed:", e));
   }
 
+  if (ticket.priority === "high" || ticket.priority === "urgent") {
+    triggerHighPriorityAlert({
+      id: ticket.id,
+      title: ticket.title,
+      priority: ticket.priority,
+    }).catch((e) => console.error("[n8n] Priority webhook failed:", e));
+  }
+
+  // 3. Fire-and-forget AI analysis — do NOT await so the user redirects instantly
+  const headersList = await headers();
+  const host = headersList.get("host") || "localhost:3000";
+  const protocol = host.includes("localhost") ? "http" : "https";
+  const baseUrl = `${protocol}://${host}`;
+
+  // We explicitly do NOT await this — it runs in the background
+  fetch(`${baseUrl}/api/ai/analyze`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ticketId: ticket.id, title, description }),
+  }).catch((e) => console.error("[AI] Background analysis failed to dispatch:", e));
+
+  // 4. Redirect immediately — user goes to ticket detail while IA processes in background
   revalidatePath("/tickets");
   redirect(`/tickets/${ticket.id}`);
 }

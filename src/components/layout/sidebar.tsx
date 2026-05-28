@@ -72,7 +72,7 @@ export function Sidebar({
         <div className="p-4 flex items-center justify-between">
           <span className="font-bold text-blue-600">Menú</span>
           <button onClick={onClose} type="button" aria-label="Cerrar menú">
-            <X className="h-6 w-6 text-gray-500" />
+            <X className="h-6 w-6 text-[#8d99ae]" />
           </button>
         </div>
 
@@ -93,7 +93,7 @@ export function Sidebar({
                   "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                   isActive
                     ? "bg-blue-50 text-blue-600"
-                    : "text-gray-600 hover:bg-gray-100",
+                    : "text-[#8d99ae] hover:text-[#2b2d42] hover:bg-gray-100",
                 )}
               >
                 <Icon className="h-5 w-5" />
@@ -105,7 +105,7 @@ export function Sidebar({
       </aside>
 
       {/* ==================== DESKTOP HOVER SIDEBAR (Overlay) ==================== */}
-      <aside className="hidden lg:block w-16 h-[calc(100vh-64px)] relative group shrink-0 select-none z-30">
+      <aside className="hidden lg:block w-16 h-[calc(100vh-64px)] fixed top-16 left-0 group select-none z-30">
         {/* Absolute expanding container panel */}
         <div className="absolute left-0 top-0 bottom-0 w-16 group-hover:w-64 bg-white border-r transition-all duration-300 ease-in-out flex flex-col overflow-hidden shadow-sm group-hover:shadow-md">
           <nav className="p-3 space-y-2 w-64">
@@ -124,7 +124,7 @@ export function Sidebar({
                     "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors w-56",
                     isActive
                       ? "bg-blue-50 text-blue-600"
-                      : "text-gray-600 hover:bg-gray-100",
+                      : "text-[#8d99ae] hover:text-[#2b2d42] hover:bg-gray-100",
                   )}
                 >
                   <Icon className="h-5 w-5 shrink-0" />

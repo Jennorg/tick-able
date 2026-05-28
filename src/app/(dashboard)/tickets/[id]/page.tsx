@@ -12,10 +12,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AgentActions } from "@/components/tickets/agent-actions";
 import { CommentForm } from "@/components/tickets/comment-form";
-import { IaPanelActions } from "@/components/tickets/ia-panel-actions";
+import { IaPanelRealtime } from "@/components/tickets/ia-panel-realtime";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase-server";
+import { cn } from "@/components/ui/button";
 
 export default async function TicketDetailPage({
   params,
@@ -66,7 +67,7 @@ export default async function TicketDetailPage({
     <div className="space-y-6 pb-20">
       <Link
         href="/tickets"
-        className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 transition-colors"
+        className="inline-flex items-center gap-2 text-sm text-[#8d99ae] hover:text-[#ef233c] transition-colors"
       >
         <ArrowLeft className="h-4 w-4" /> Volver a tickets
       </Link>
@@ -77,7 +78,7 @@ export default async function TicketDetailPage({
             <CardHeader className="flex flex-row items-start justify-between">
               <div className="space-y-1">
                 <div className="flex items-center gap-3">
-                  <h1 className="text-2xl font-bold text-gray-900">
+                  <h1 className="text-2xl font-bold text-[#2b2d42]">
                     {ticket.title}
                   </h1>
                   <span
@@ -89,7 +90,7 @@ export default async function TicketDetailPage({
                     {ticket.status}
                   </span>
                 </div>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-[#8d99ae]">
                   ID: #{ticket.id.split("-")[0]} • Creado el{" "}
                   {new Date(ticket.created_at).toLocaleString()}
                 </p>
@@ -106,7 +107,7 @@ export default async function TicketDetailPage({
               </span>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="prose max-w-none text-gray-700">
+              <div className="prose max-w-none text-[#2b2d42]">
                 <p className="whitespace-pre-wrap">{ticket.description}</p>
               </div>
 
@@ -116,10 +117,10 @@ export default async function TicketDetailPage({
                     <User className="h-4 w-4" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">
+                    <p className="font-medium text-[#2b2d42]">
                       {ticket.profiles?.full_name}
                     </p>
-                    <p className="text-xs text-gray-500">Solicitante</p>
+                    <p className="text-xs text-[#8d99ae]">Solicitante</p>
                   </div>
                 </div>
                 {ticket.assigned_to_profile && (
@@ -128,10 +129,10 @@ export default async function TicketDetailPage({
                       <ShieldAlert className="h-4 w-4" />
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-[#2b2d42]">
                         {ticket.assigned_to_profile.full_name}
                       </p>
-                      <p className="text-xs text-gray-500">Agente asignado</p>
+                      <p className="text-xs text-[#8d99ae]">Agente asignado</p>
                     </div>
                   </div>
                 )}
@@ -140,8 +141,8 @@ export default async function TicketDetailPage({
           </Card>
 
           <section className="space-y-4">
-            <h3 className="text-lg font-bold flex items-center gap-2">
-              <MessageSquare className="h-5 w-5 text-gray-400" />
+            <h3 className="text-lg font-bold flex items-center gap-2 text-[#2b2d42]">
+              <MessageSquare className="h-5 w-5 text-[#8d99ae]" />
               Comentarios ({comments?.length || 0})
             </h3>
 
@@ -156,26 +157,26 @@ export default async function TicketDetailPage({
                       : "bg-white border-gray-100",
                   )}
                 >
-                  <div className="h-10 w-10 rounded-full bg-gray-200 flex-shrink-0 flex items-center justify-center">
-                    <User className="h-6 w-6 text-gray-400" />
+                  <div className="h-10 w-10 rounded-full bg-gray-250 flex-shrink-0 flex items-center justify-center">
+                    <User className="h-6 w-6 text-[#8d99ae]" />
                   </div>
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-sm text-gray-900">
+                        <span className="font-semibold text-sm text-[#2b2d42]">
                           {comment.profiles?.full_name}
                         </span>
                         {comment.is_internal && (
-                          <span className="px-1.5 py-0.5 rounded bg-gray-200 text-[10px] font-bold uppercase text-gray-600 tracking-wider">
+                          <span className="px-1.5 py-0.5 rounded bg-gray-200 text-[10px] font-bold uppercase text-[#2b2d42] tracking-wider">
                             Interno
                           </span>
                         )}
                       </div>
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-[#8d99ae]">
                         {new Date(comment.created_at).toLocaleString()}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                    <p className="text-sm text-[#2b2d42] whitespace-pre-wrap">
                       {comment.content}
                     </p>
                   </div>
@@ -183,7 +184,7 @@ export default async function TicketDetailPage({
               ))}
 
               {(!comments || comments.length === 0) && (
-                <div className="text-center py-10 bg-white border border-dashed rounded-xl text-gray-400">
+                <div className="text-center py-10 bg-white border border-dashed rounded-xl text-[#8d99ae]">
                   <p>Aún no hay comentarios.</p>
                 </div>
               )}
@@ -198,81 +199,7 @@ export default async function TicketDetailPage({
         {/* Sidebar IA Panel & Actions */}
         <aside className="w-full lg:w-80 space-y-6">
           <Card className="border-blue-200 bg-blue-50">
-            <CardHeader className="pb-2 border-b border-blue-100">
-              <div className="flex items-center gap-2 text-blue-700">
-                <Brain className="h-5 w-5" />
-                <CardTitle className="text-base">Análisis de IA</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="p-4 space-y-4">
-              {ticket.ia_summary ? (
-                <>
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold uppercase text-blue-600 tracking-wider">
-                      Resumen
-                    </p>
-                    <p className="text-sm text-gray-800 font-medium">
-                      {ticket.ia_summary}
-                    </p>
-                  </div>
-
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold uppercase text-blue-600 tracking-wider">
-                      Clasificación
-                    </p>
-                    <p className="text-sm text-gray-800">
-                      {ticket.ia_classification}
-                    </p>
-                  </div>
-
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold uppercase text-blue-600 tracking-wider">
-                      Nivel de Riesgo
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={cn(
-                          "h-3 w-3 rounded-full",
-                          ticket.ia_risk_level === "critical"
-                            ? "bg-red-600 animate-pulse"
-                            : ticket.ia_risk_level === "high"
-                              ? "bg-orange-500"
-                              : ticket.ia_risk_level === "medium"
-                                ? "bg-yellow-500"
-                                : "bg-green-500",
-                        )}
-                      ></span>
-                      <span className="text-sm font-semibold capitalize">
-                        {ticket.ia_risk_level}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 pt-2">
-                    <p className="text-[10px] font-bold uppercase text-blue-600 tracking-wider">
-                      Sugerencia de respuesta
-                    </p>
-                    <div className="p-3 bg-white border border-blue-200 rounded-lg text-xs text-gray-700 leading-relaxed italic">
-                      "{ticket.ia_suggestions}"
-                    </div>
-                    <IaPanelActions
-                      ticketId={ticket.id}
-                      suggestion={ticket.ia_suggestions}
-                    />
-                  </div>
-
-                  <div className="pt-2 border-t border-blue-100 flex items-center justify-between text-[10px] text-blue-400">
-                    <span>Modelo: {ticket.ia_model}</span>
-                    <span>Latencia: {ticket.ia_latency_ms}ms</span>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-6 text-blue-400 space-y-2">
-                  <Clock className="h-8 w-8 mx-auto animate-spin opacity-50" />
-                  <p className="text-xs">Procesando análisis de IA...</p>
-                </div>
-              )}
-            </CardContent>
+            <IaPanelRealtime ticket={ticket} />
           </Card>
 
           {isStaff && (
@@ -294,5 +221,3 @@ export default async function TicketDetailPage({
     </div>
   );
 }
-
-import { cn } from "@/components/ui/button";

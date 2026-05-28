@@ -46,10 +46,10 @@ export default function UsersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-2xl font-bold text-[#2b2d42]">
           Gestión de Usuarios
         </h1>
-        <p className="text-gray-500">
+        <p className="text-[#8d99ae]">
           Administra los roles y permisos de los usuarios.
         </p>
       </div>
@@ -67,7 +67,7 @@ export default function UsersPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="border-b text-sm font-semibold text-gray-500 uppercase">
+                  <tr className="border-b text-sm font-semibold text-[#8d99ae] uppercase">
                     <th className="py-3 px-4">Usuario</th>
                     <th className="py-3 px-4">Email</th>
                     <th className="py-3 px-4">Rol</th>
@@ -82,12 +82,12 @@ export default function UsersPage() {
                           <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
                             <UserIcon className="h-4 w-4" />
                           </div>
-                          <span className="font-medium text-gray-900">
+                          <span className="font-medium text-[#2b2d42]">
                             {user.full_name}
                           </span>
                         </div>
                       </td>
-                      <td className="py-4 px-4 text-gray-500">
+                      <td className="py-4 px-4 text-[#8d99ae]">
                         <div className="flex items-center gap-2">
                           <Mail className="h-3 w-3" />
                           {user.email}
@@ -100,7 +100,7 @@ export default function UsersPage() {
                               ? "bg-purple-100 text-purple-700"
                               : user.role === "agent"
                                 ? "bg-blue-100 text-blue-700"
-                                : "bg-gray-100 text-gray-700"
+                                : "bg-gray-100 text-[#2b2d42]"
                           }`}
                         >
                           {user.role}
@@ -108,7 +108,7 @@ export default function UsersPage() {
                       </td>
                       <td className="py-4 px-4">
                         <select
-                          className="text-xs border rounded p-1 outline-none focus:ring-1 focus:ring-blue-500"
+                          className="text-xs border rounded p-1 outline-none focus:ring-1 focus:ring-blue-500 bg-white text-[#2b2d42]"
                           value={user.role}
                           onChange={(e) =>
                             handleRoleChange(user.id, e.target.value)

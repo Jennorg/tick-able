@@ -18,8 +18,8 @@ export default async function NotificationsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Notificaciones</h1>
-        <p className="text-gray-500">Historial completo de tus alertas.</p>
+        <h1 className="text-2xl font-bold text-[#2b2d42]">Notificaciones</h1>
+        <p className="text-[#8d99ae]">Historial completo de tus alertas.</p>
       </div>
 
       <Card>
@@ -33,17 +33,17 @@ export default async function NotificationsPage() {
               >
                 <div className="flex gap-4">
                   <div
-                    className={`h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0 ${!n.read ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-400"}`}
+                    className={`h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0 ${!n.read ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-[#8d99ae]"}`}
                   >
                     <Bell className="h-5 w-5" />
                   </div>
                   <div className="space-y-1">
                     <p
-                      className={`text-sm ${!n.read ? "font-semibold text-gray-900" : "text-gray-600"}`}
+                      className={`text-sm ${!n.read ? "font-semibold text-[#2b2d42]" : "text-[#8d99ae]"}`}
                     >
                       {n.message}
                     </p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-[#8d99ae]">
                       {new Date(n.created_at).toLocaleString()}
                     </p>
                   </div>
@@ -51,8 +51,8 @@ export default async function NotificationsPage() {
               </Link>
             ))}
             {(!notifications || notifications.length === 0) && (
-              <div className="text-center py-20 text-gray-500">
-                <Bell className="h-12 w-12 mx-auto mb-4 opacity-10" />
+              <div className="text-center py-20 text-[#8d99ae]">
+                <Bell className="h-12 w-12 mx-auto mb-4 opacity-20" />
                 <p>No tienes notificaciones aún.</p>
               </div>
             )}

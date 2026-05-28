@@ -6,12 +6,17 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase-client";
 
+import { useOutsideClick } from "@/hooks/use-outside-click";
 import { NotificationBell } from "./notification-bell";
 
 export function Navbar({ onMenuClick }: { onMenuClick: () => void }) {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const router = useRouter();
   const supabase = createClient();
+
+  const menuRef = useOutsideClick(() => {
+    setShowUserMenu(false);
+  });
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -20,7 +25,7 @@ export function Navbar({ onMenuClick }: { onMenuClick: () => void }) {
   }
 
   return (
-    <nav className="h-16 border-b bg-white flex items-center justify-between px-4 sticky top-0 z-30">
+    <nav className="h-16 border-b bg-white flex items-center justify-between px-4 fixed top-0 left-0 right-0 z-40 w-full">
       <div className="flex items-center gap-4">
         <Button
           variant="ghost"
@@ -36,14 +41,14 @@ export function Navbar({ onMenuClick }: { onMenuClick: () => void }) {
       <div className="flex items-center gap-2">
         <NotificationBell />
 
-        <div className="relative">
+        <div className="relative" ref={menuRef}>
           <Button
             variant="ghost"
             size="sm"
             className="rounded-full"
             onClick={() => setShowUserMenu(!showUserMenu)}
           >
-            <User className="h-5 w-5 text-gray-600" />
+            <User className="h-5 w-5 text-[#8d99ae]" />
           </Button>
 
           {showUserMenu && (

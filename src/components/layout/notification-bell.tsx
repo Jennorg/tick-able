@@ -6,22 +6,28 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase-client";
 
+import { useOutsideClick } from "@/hooks/use-outside-click";
+
 export function NotificationBell() {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const supabase = createClient();
 
+  const bellRef = useOutsideClick(() => {
+    setIsOpen(false);
+  });
+
   useEffect(() => {
     fetchNotifications();
 
     // Subscribe to new notifications
-    const channel = supabase
-      .channel("schema-db-changes")
+    const channel = (supabase
+      .channel("schema-db-changes") as any)
       .on(
         "postgres_changes",
         { event: "INSERT", table: "notifications" },
-        (payload) => {
+        (payload: any) => {
           setNotifications((prev) => [payload.new, ...prev]);
           setUnreadCount((prev) => prev + 1);
         },
@@ -70,14 +76,14 @@ export function NotificationBell() {
   }
 
   return (
-    <div className="relative">
+    <div className="relative" ref={bellRef}>
       <Button
         variant="ghost"
         size="sm"
         className="relative"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <Bell className="h-5 w-5 text-gray-600" />
+        <Bell className="h-5 w-5 text-[#8d99ae]" />
         {unreadCount > 0 && (
           <span className="absolute top-1 right-1 h-4 w-4 bg-red-500 rounded-full border-2 border-white text-[10px] text-white flex items-center justify-center font-bold">
             {unreadCount}
@@ -88,7 +94,7 @@ export function NotificationBell() {
       {isOpen && (
         <div className="absolute right-0 mt-2 w-80 bg-white border rounded-lg shadow-xl z-50 overflow-hidden">
           <div className="p-3 border-b bg-gray-50 flex items-center justify-between">
-            <span className="text-xs font-bold uppercase text-gray-500 tracking-wider">
+            <span className="text-xs font-bold uppercase text-[#8d99ae] tracking-wider">
               Notificaciones
             </span>
             {unreadCount > 0 && (
@@ -118,10 +124,10 @@ export function NotificationBell() {
                     <div className="h-2 w-2 bg-blue-600 rounded-full mt-1.5 flex-shrink-0"></div>
                   )}
                   <div className="space-y-1">
-                    <p className="text-sm text-gray-800 leading-snug">
+                    <p className="text-sm text-[#2b2d42] leading-snug">
                       {n.message}
                     </p>
-                    <p className="text-[10px] text-gray-400">
+                    <p className="text-[10px] text-[#8d99ae]">
                       {new Date(n.created_at).toLocaleString()}
                     </p>
                   </div>
@@ -129,7 +135,7 @@ export function NotificationBell() {
               </Link>
             ))}
             {notifications.length === 0 && (
-              <div className="p-8 text-center text-gray-400 text-sm">
+              <div className="p-8 text-center text-[#8d99ae] text-sm">
                 No tienes notificaciones nuevas.
               </div>
             )}

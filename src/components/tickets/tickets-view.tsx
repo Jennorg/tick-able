@@ -73,8 +73,8 @@ export function TicketsView({ tickets, categories }: TicketsViewProps) {
       {/* Header section with toggle */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Tickets</h1>
-          <p className="text-gray-500 text-sm">
+          <h1 className="text-2xl font-bold text-[#2b2d42]">Tickets</h1>
+          <p className="text-[#8d99ae] text-sm">
             Gestiona y realiza seguimiento a tus solicitudes.
           </p>
         </div>
@@ -87,8 +87,8 @@ export function TicketsView({ tickets, categories }: TicketsViewProps) {
               onClick={() => handleViewChange("board")}
               className={`px-3 py-1.5 rounded-md flex items-center gap-1.5 transition-all cursor-pointer ${
                 viewMode === "board"
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-900"
+                  ? "bg-white text-[#2b2d42] shadow-sm"
+                  : "text-[#8d99ae] hover:text-[#2b2d42]"
               }`}
             >
               <LayoutGrid className="h-3.5 w-3.5" /> Tablero
@@ -98,8 +98,8 @@ export function TicketsView({ tickets, categories }: TicketsViewProps) {
               onClick={() => handleViewChange("list")}
               className={`px-3 py-1.5 rounded-md flex items-center gap-1.5 transition-all cursor-pointer ${
                 viewMode === "list"
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-900"
+                  ? "bg-white text-[#2b2d42] shadow-sm"
+                  : "text-[#8d99ae] hover:text-[#2b2d42]"
               }`}
             >
               <List className="h-3.5 w-3.5" /> Lista
@@ -122,10 +122,10 @@ export function TicketsView({ tickets, categories }: TicketsViewProps) {
             <div className="bg-gray-50 h-20 w-20 rounded-full flex items-center justify-center mx-auto mb-4 border">
               <TicketIcon className="h-10 w-10 text-gray-300" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900">
+            <h3 className="text-lg font-medium text-[#2b2d42]">
               No se encontraron tickets
             </h3>
-            <p className="text-gray-500 max-w-xs mx-auto mt-2 text-sm">
+            <p className="text-[#8d99ae] max-w-xs mx-auto mt-2 text-sm">
               Comienza creando tu primera solicitud de soporte.
             </p>
             <Link href="/tickets/new" className="mt-6 inline-block">
@@ -138,7 +138,7 @@ export function TicketsView({ tickets, categories }: TicketsViewProps) {
       ) : (
         <div className="grid gap-4">
           {/* Desktop Table Header */}
-          <div className="hidden lg:grid grid-cols-6 gap-4 px-6 py-3 bg-gray-50 rounded-lg text-sm font-semibold text-gray-500 uppercase tracking-wider border border-gray-100">
+          <div className="hidden lg:grid grid-cols-6 gap-4 px-6 py-3 bg-gray-50 rounded-lg text-sm font-semibold text-[#8d99ae] uppercase tracking-wider border border-gray-100">
             <div className="col-span-2">Ticket</div>
             <div>Prioridad</div>
             <div>Estado</div>
@@ -155,10 +155,10 @@ export function TicketsView({ tickets, categories }: TicketsViewProps) {
                 <CardContent className="p-0">
                   <div className="lg:grid lg:grid-cols-6 lg:items-center gap-4 p-4 md:p-6">
                     <div className="lg:col-span-2 space-y-1">
-                      <h4 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1 text-sm">
+                      <h4 className="font-semibold text-[#2b2d42] group-hover:text-blue-600 transition-colors line-clamp-1 text-sm">
                         {ticket.title}
                       </h4>
-                      <p className="text-[10px] text-gray-400 font-mono">
+                      <p className="text-[10px] text-[#8d99ae] font-mono">
                         ID: #{ticket.id.split("-")[0]}
                       </p>
                     </div>
@@ -185,7 +185,7 @@ export function TicketsView({ tickets, categories }: TicketsViewProps) {
                       </span>
                     </div>
 
-                    <div className="mt-2 lg:mt-0 text-xs text-gray-500">
+                    <div className="mt-2 lg:mt-0 text-xs text-[#8d99ae]">
                       {new Date(ticket.created_at).toLocaleDateString()}
                     </div>
 

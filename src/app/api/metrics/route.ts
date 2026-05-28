@@ -68,7 +68,7 @@ export async function GET() {
     status: statusCounts,
     priority: priorityCounts,
     totalTokens,
-    estimatedCost: (totalTokens / 1000000) * 0.15, // Simple estimate for Gemini 1.5 Flash
+    estimatedCost: (totalTokens / 1000000) * 1.25, // Estimate for Gemini 1.5 Pro (higher cost/accuracy)
     agentStats,
   });
 }
