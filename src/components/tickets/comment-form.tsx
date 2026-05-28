@@ -1,13 +1,26 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 
 export function CommentForm({ ticketId }: { ticketId: string }) {
   const [loading, setLoading] = useState(false);
   const [content, setContent] = useState("");
   const router = useRouter();
+
+  useEffect(() => {
+    const handleIaSuggestion = (e: any) => {
+      if (e.detail && e.detail.suggestion) {
+        setContent(e.detail.suggestion);
+      }
+    };
+
+    window.addEventListener("ia-apply-suggestion", handleIaSuggestion);
+    return () => {
+      window.removeEventListener("ia-apply-suggestion", handleIaSuggestion);
+    };
+  }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();

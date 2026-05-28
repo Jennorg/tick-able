@@ -439,87 +439,215 @@ export function AuthForm({ mode }: AuthFormProps) {
               : "md:left-0 md:translate-x-[122.22%]"
           }`}
         >
-          {/* Top Planet Icon */}
-          <div className="w-full flex justify-center">
-            <svg
-              viewBox="0 0 100 100"
-              className="w-12 h-12 text-white/90"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              role="img"
-              aria-label="Icono de planeta"
-            >
-              <title>Planeta</title>
-              <circle cx="50" cy="50" r="20" />
-              <path d="M 22 62 C 32 42, 68 42, 78 62" />
-              <path d="M 15 57 C 28 85, 72 85, 85 57" />
-              <path d="M 28 22 h 4 M 30 20 v 4" strokeWidth="1.5" />
-              <circle cx="75" cy="30" r="1.5" fill="currentColor" />
-              <circle cx="70" cy="72" r="1" fill="currentColor" />
-            </svg>
+          {/* Top Custom Logo */}
+          <div className="w-full flex flex-col items-center gap-3">
+            <div className="bg-white p-3.5 rounded-2xl shadow-lg shadow-black/10 flex items-center justify-center">
+              <svg
+                viewBox="0 0 48 48"
+                className="w-10 h-10 text-[#ef233c]"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                role="img"
+                aria-label="Logo de TickAble"
+              >
+                <title>Logo de TickAble</title>
+                {/* Stylized Ticket Shape */}
+                <rect
+                  x="6"
+                  y="12"
+                  width="36"
+                  height="24"
+                  rx="6"
+                  fill="rgba(239, 35, 60, 0.05)"
+                />
+                {/* Left/Right ticket notches */}
+                <path d="M 6 20 C 8 20, 8 28, 6 28" />
+                <path d="M 42 20 C 40 20, 40 28, 42 28" />
+                {/* Checkmark in the center representing "Tick-able" status */}
+                <path
+                  d="M 16 24 L 22 30 L 32 18"
+                  strokeWidth="4"
+                  stroke="#ef233c"
+                />
+              </svg>
+            </div>
+            <h1 className="text-3xl font-black tracking-tighter italic">
+              TickAble
+            </h1>
           </div>
 
           {/* Middle Text */}
           <div className="max-w-[280px] my-6">
             <h2 className="text-xl md:text-2xl font-light tracking-wide leading-relaxed">
-              Sé parte de nuestro increíble equipo y diviértete con nosotros
+              Gestión inteligente de tickets potenciada por IA para tu equipo
             </h2>
           </div>
 
-          {/* Bottom Rocket Illustration */}
-          <div className="w-full mt-auto flex justify-center">
+          {/* Bottom Dynamic Illustration */}
+          <div className="w-full mt-auto flex justify-center relative h-[180px] max-w-[200px] mx-auto">
+            {/* Login Illustration */}
             <svg
               viewBox="0 0 240 180"
-              className="w-full max-w-[200px] text-white/95"
+              className={`w-full max-w-[200px] text-white/95 transition-all duration-700 ease-in-out absolute ${
+                activeMode === "login"
+                  ? "opacity-100 scale-100 rotate-0 pointer-events-auto"
+                  : "opacity-0 scale-75 -rotate-12 pointer-events-none"
+              }`}
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
               role="img"
-              aria-label="Ilustración de lanzamiento de cohete"
+              aria-label="Ilustración de Inicio de Sesión"
             >
-              <title>Lanzamiento de Cohete</title>
+              <title>Inicio de Sesión</title>
+              {/* Floating decorative lines */}
               <path
-                d="M 20 160 C 60 145, 180 145, 220 160"
-                strokeWidth="1.5"
-                strokeDasharray="5 5"
+                d="M 20 120 C 60 110, 180 110, 220 120"
+                strokeWidth="1"
+                strokeDasharray="4 4"
+                opacity="0.5"
+              />
+              <path
+                d="M 40 40 C 90 20, 150 20, 200 40"
+                strokeWidth="1"
+                strokeDasharray="4 4"
+                opacity="0.3"
               />
 
-              {/* Rocket Ship with dynamic translate for parallax */}
-              <g
-                transform="translate(100, 20)"
-                className="transition-transform duration-700 ease-in-out"
-                style={{
-                  transform:
-                    activeMode === "register"
-                      ? "translate(100px, 15px) rotate(2deg)"
-                      : "translate(100px, 20px)",
-                }}
-              >
+              {/* Padlock Body */}
+              <g transform="translate(70, 35)" className="animate-pulse">
+                {/* Shackle (Lock loop) */}
                 <path
-                  d="M 20 0 C 32 20, 32 60, 32 80 L 8 80 C 8 60, 8 20, 20 0 Z"
-                  fill="none"
+                  d="M 30 25 V 12 C 30 5, 45 5, 45 12 V 25"
+                  strokeWidth="2.5"
                 />
-                <path d="M 8 70 L 0 90 L 8 85 Z" fill="currentColor" />
-                <path d="M 32 70 L 40 90 L 32 85 Z" fill="currentColor" />
-                <circle cx="20" cy="40" r="5" fill="none" />
+                {/* Lock body */}
+                <rect
+                  x="15"
+                  y="25"
+                  width="45"
+                  height="35"
+                  rx="6"
+                  fill="rgba(255, 255, 255, 0.1)"
+                  strokeWidth="2.5"
+                />
+                {/* Keyhole */}
+                <circle cx="37.5" cy="40" r="3.5" fill="currentColor" />
+                <path d="M 37.5 43.5 V 50" strokeWidth="2.5" />
+              </g>
+
+              {/* Stylized Key */}
+              <g transform="translate(130, 80) rotate(-15)">
+                <circle
+                  cx="18"
+                  cy="18"
+                  r="10"
+                  strokeWidth="2.5"
+                  fill="rgba(255, 255, 255, 0.05)"
+                />
+                <path d="M 28 18 H 65" strokeWidth="2.5" />
+                {/* Key teeth */}
                 <path
-                  d="M 15 90 v 15 M 20 90 v 25 M 25 90 v 15"
+                  d="M 50 18 V 25 M 58 18 V 25 M 65 18 V 22"
+                  strokeWidth="2.5"
+                />
+              </g>
+
+              {/* Decorative sparkles */}
+              <g strokeWidth="1.5" opacity="0.8">
+                <path d="M 30 75 h 4 M 32 73 v 4" />
+                <path d="M 210 50 h 4 M 212 48 v 4" />
+                <path d="M 120 15 h 4 M 122 13 v 4" />
+              </g>
+            </svg>
+
+            {/* Register Illustration */}
+            <svg
+              viewBox="0 0 240 180"
+              className={`w-full max-w-[200px] text-white/95 transition-all duration-700 ease-in-out absolute ${
+                activeMode === "register"
+                  ? "opacity-100 scale-100 rotate-0 pointer-events-auto"
+                  : "opacity-0 scale-75 rotate-12 pointer-events-none"
+              }`}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              role="img"
+              aria-label="Ilustración de Registro de Usuario"
+            >
+              <title>Registro de Cuenta</title>
+              {/* Floating decorative lines */}
+              <path
+                d="M 20 130 C 60 120, 180 120, 220 130"
+                strokeWidth="1"
+                strokeDasharray="4 4"
+                opacity="0.5"
+              />
+
+              {/* User Card Background */}
+              <rect
+                x="65"
+                y="25"
+                width="110"
+                height="100"
+                rx="12"
+                fill="rgba(255, 255, 255, 0.08)"
+                strokeWidth="2"
+              />
+
+              {/* User Avatar Silhouette */}
+              <g transform="translate(100, 45)">
+                {/* Head */}
+                <circle cx="20" cy="15" r="10" strokeWidth="2" />
+                {/* Shoulders / Body */}
+                <path d="M 2 40 C 2 30, 38 30, 38 40" strokeWidth="2" />
+              </g>
+
+              {/* Plus Sign Badge (User Add) */}
+              <g transform="translate(145, 85)">
+                <circle cx="12" cy="12" r="10" fill="#ef233c" strokeWidth="2" />
+                <path
+                  d="M 7 12 H 17 M 12 7 V 17"
+                  strokeWidth="2"
+                  stroke="white"
+                />
+              </g>
+
+              {/* Small floating items checklist */}
+              <g transform="translate(45, 60)" opacity="0.8">
+                <rect
+                  x="0"
+                  y="0"
+                  width="12"
+                  height="12"
+                  rx="3"
+                  strokeWidth="1.5"
+                />
+                <path d="M 3 6 L 5 8 L 9 4" strokeWidth="1.5" />
+              </g>
+              <g transform="translate(45, 85)" opacity="0.5">
+                <rect
+                  x="0"
+                  y="0"
+                  width="12"
+                  height="12"
+                  rx="3"
                   strokeWidth="1.5"
                 />
               </g>
 
-              {/* Dynamic floating stars */}
+              {/* Decorative sparkles */}
               <g strokeWidth="1.5" opacity="0.8">
-                <path d="M 40 50 h 4 M 42 48 v 4" />
-                <path d="M 190 65 h 4 M 192 63 v 4" />
-                <path d="M 50 110 h 4 M 52 108 v 4" />
-                <path d="M 195 120 h 4 M 197 118 v 4" />
-                <path d="M 120 15 h 4 M 122 13 v 4" />
+                <path d="M 35 25 h 4 M 37 23 v 4" />
+                <path d="M 205 60 h 4 M 207 58 v 4" />
+                <path d="M 195 110 h 4 M 197 108 v 4" />
               </g>
             </svg>
           </div>

@@ -116,7 +116,7 @@
 - Contenedor colapsable con borde `border border-blue-200 bg-blue-50 rounded-lg p-4`.
 - Cabecera con ícono de IA y título "Análisis de IA".
 - Contenido formateado con campos: resumen, clasificación, sugerencia (textarea editable), nivel de riesgo (badge de color).
-- Botón "Aplicar sugerencia" (primario) con confirmación.
+- Botón "Usar sugerencia" (primario) que copia el texto al formulario de comentarios.
 
 ## 7. Breakpoints Responsive (Tailwind por defecto)
 - `sm`: 640px (móvil grande)

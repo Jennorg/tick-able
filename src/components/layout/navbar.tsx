@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, LogOut, Menu, User } from "lucide-react";
+import { Bell, LogOut, Menu, User, Ticket } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -35,7 +35,14 @@ export function Navbar({ onMenuClick }: { onMenuClick: () => void }) {
         >
           <Menu className="h-5 w-5" />
         </Button>
-        <span className="text-xl font-bold text-blue-600">TickAble</span>
+        <div className="flex items-center gap-2">
+          <div className="bg-blue-600 p-1.5 rounded-lg shadow-sm">
+            <Ticket className="h-5 w-5 text-white" />
+          </div>
+          <span className="text-xl font-bold text-gray-900 tracking-tight">
+            TickAble
+          </span>
+        </div>
       </div>
 
       <div className="flex items-center gap-2">

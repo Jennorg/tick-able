@@ -12,7 +12,6 @@ export function IaPanelActions({
   ticketId: string;
   suggestion: string;
 }) {
-  const [loading, setLoading] = useState(false);
   const [role, setRole] = useState<string>("user");
   const router = useRouter();
   const supabase = createClient();
@@ -27,23 +26,17 @@ export function IaPanelActions({
     getRole();
   }, []);
 
-  async function handleApply() {
-    if (!confirm("¿Agregar esta respuesta como comentario?")) return;
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/tickets/${ticketId}/comments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: suggestion, is_internal: false }),
-      });
-      if (res.ok) {
-        router.refresh();
-        alert("Respuesta agregada con éxito");
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
+  function handleApply() {
+    // Despachar evento personalizado para que el formulario de comentarios lo escuche
+    const event = new CustomEvent("ia-apply-suggestion", {
+      detail: { suggestion },
+    });
+    window.dispatchEvent(event);
+    
+    // Opcional: Pequeño feedback visual o scroll al formulario
+    const commentArea = document.querySelector('textarea[name="content"]');
+    if (commentArea) {
+      commentArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }
 
@@ -55,9 +48,8 @@ export function IaPanelActions({
       size="sm"
       className="w-full mt-2 text-xs"
       onClick={handleApply}
-      isLoading={loading}
     >
-      Aplicar sugerencia
+      Usar sugerencia
     </Button>
   );
 }

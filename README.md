@@ -18,7 +18,7 @@ La aplicación sigue una arquitectura basada en **Next.js Server Actions** para 
 2. **Análisis:** Una Server Action invoca a Gemini 1.5 Flash para analizar el contenido.
 3. **Persistencia:** Se guarda el ticket y su análisis en Supabase.
 4. **Notificación:** Supabase Triggers o Webhooks activan flujos en n8n.
-5. **Human-in-the-Loop:** Los agentes revisan la sugerencia de la IA antes de aplicarla.
+5. **Human-in-the-Loop:** Los agentes revisan la sugerencia de la IA y pueden copiarla al cuadro de comentarios para editarla antes de enviarla.
 
 ## 🛠️ Instalación y Configuración
 
@@ -57,12 +57,22 @@ TickAble utiliza un "Prompt de Sistema" estricto para forzar a Gemini a devolver
 - **Sugerencia:** Respuesta profesional pre-redactada.
 - **Riesgo:** Nivel de urgencia (Critical, High, Medium, Low).
 
+### 📊 Control y Conteo del Consumo de Tokens
+
+Para garantizar un monitoreo de costos a escala y en tiempo real, TickAble cuenta con una arquitectura de observabilidad optimizada:
+1. **Acumulador en Base de Datos (`usage_stats`):** En lugar de barrer la tabla de auditoría completa en cada solicitud, un trigger de base de datos (`on_ia_audit_log_inserted`) incrementa de forma incremental los totales diarios agrupados por modelo en la tabla `usage_stats`.
+2. **Auditoría Exhaustiva (`ia_audit_log`):** Cada llamada a la API de IA genera un registro detallado que incluye: el prompt exacto enviado, el modelo utilizado, el tiempo de latencia en milisegundos, los tokens consumidos y la respuesta estructurada devuelta por Gemini.
+3. **Visualización y Reportes de Consumo:**
+   - **Dashboard de Métricas:** Gráficos interactivos de Recharts que revelan las tendencias de consumo y costo diario, además de una lista de auditoría en tiempo real del uso de IA.
+   - **Reporte Diario en n8n:** El flujo cron diario recopila de forma paralela los consumos de las últimas 24h directamente desde la base de datos, agregando automáticamente los tokens usados, costos y tiempos promedio de latencia mediante un nodo Code (JavaScript) antes de enviar el reporte unificado a Slack.
+
 ### 📉 Estrategias de Optimización de Tokens
 
-1. **Uso de Modelos Flash:** Utilizamos `gemini-1.5-flash` por defecto. Es significativamente más económico y rápido que `1.5-pro` para tareas de clasificación y resumen, manteniendo una alta precisión.
-2. **Contexto Truncado:** En lugar de enviar todo el historial de comentarios, solo enviamos el título y la descripción inicial para el análisis principal. Para análisis posteriores, se envían solo los últimos 3 mensajes relevantes.
-3. **Formatos Estrictos:** El uso de `responseMimeType: "application/json"` reduce la verbosidad del modelo, evitando explicaciones innecesarias y ahorrando tokens de salida.
-4. **Prompt Comprimido:** El prompt de sistema está diseñado para ser directo y sin adornos, minimizando los tokens de entrada (Input Tokens).
+1. **Uso de Modelos Flash:** Utilizamos `gemini-2.5-flash` por defecto en lugar de modelos más pesados. Es sumamente veloz y óptimo en costos para resúmenes y clasificación, con un ahorro de más del 90% comparado con la gama Pro.
+2. **Contexto Truncado e Inteligente:** La descripción de los tickets se trunca y sanea para evitar el envío de payloads redundantes o excesivos. Para flujos conversacionales, solo se transmiten los últimos comentarios relevantes en lugar del histórico completo.
+3. **Formatos de Salida Estrictos (JSON):** El uso de `responseMimeType: "application/json"` previene que el modelo agregue preámbulos explicativos verbosos, minimizando significativamente los tokens de salida (Output Tokens).
+4. **Prompt de Sistema Comprimido:** Se han purgado palabras redundantes del prompt, manteniendo únicamente las directrices técnicas esenciales para reducir los tokens de entrada (Input Tokens).
+5. **Caché y Human-in-the-Loop:** Las sugerencias se guardan en el ticket y requieren aprobación explícita del agente (Human-in-the-loop) para publicarse como comentarios, evitando re-ejecuciones de IA accidentales sobre la misma consulta.
 
 ## ⚙️ Automatizaciones n8n
 

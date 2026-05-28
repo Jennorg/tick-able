@@ -114,7 +114,7 @@ export function TicketsView({ tickets, categories }: TicketsViewProps) {
         </div>
       </div>
 
-      <TicketFilters categories={categories} />
+      <TicketFilters categories={categories} viewMode={viewMode} />
 
       {!tickets || tickets.length === 0 ? (
         <Card className="text-center py-20 border-dashed">

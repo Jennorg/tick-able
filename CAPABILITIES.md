@@ -34,7 +34,7 @@ La IA está integrada en el núcleo del flujo de trabajo, no solo como un adorno
 - **Análisis Automático**: Al crear un ticket, Gemini analiza el título y descripción instantáneamente.
 - **Categorización Inteligente**: Sugiere la categoría técnica (Hardware, Software, Red, etc.).
 - **Detección de Riesgo**: Clasifica el nivel de riesgo (Crítico, Alto, Medio, Bajo). Los tickets críticos activan alertas visuales (bordes rojos, animaciones pulse).
-- **Human-in-the-Loop**: La IA genera una **sugerencia de respuesta profesional**. Los agentes pueden revisarla, editarla y aplicarla como comentario oficial con un solo clic.
+- **Human-in-the-Loop**: La IA genera una **sugerencia de respuesta profesional**. Los agentes pueden copiarla al cuadro de comentarios con un solo clic para revisarla, editarla y enviarla manualmente.
 - **Auditoría de IA**: Registro detallado de cada invocación (latencia, tokens consumidos, prompt exacto) para control de costos y optimización.
 
 ---

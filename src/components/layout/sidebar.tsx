@@ -69,8 +69,13 @@ export function Sidebar({
           isOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <div className="p-4 flex items-center justify-between">
-          <span className="font-bold text-blue-600">Menú</span>
+        <div className="p-4 flex items-center justify-between border-b">
+          <div className="flex items-center gap-2">
+            <div className="bg-blue-600 p-1 rounded-md">
+              <Ticket className="h-4 w-4 text-white" />
+            </div>
+            <span className="font-bold text-gray-900">TickAble</span>
+          </div>
           <button onClick={onClose} type="button" aria-label="Cerrar menú">
             <X className="h-6 w-6 text-[#8d99ae]" />
           </button>

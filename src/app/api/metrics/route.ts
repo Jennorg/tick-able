@@ -31,15 +31,84 @@ export async function GET() {
     return acc;
   }, {});
 
-  // IA Tokens usage
-  const { data: iaData } = await supabase
-    .from("ia_audit_log")
-    .select("tokens_used");
+  // IA Tokens usage from usage_stats
+  const { data: usageData } = await supabase
+    .from("usage_stats")
+    .select("date, model, tokens_used, requests_count")
+    .order("date", { ascending: true });
 
-  const totalTokens = (iaData || []).reduce(
-    (acc, curr) => acc + (curr.tokens_used || 0),
-    0,
-  );
+  let totalTokens = 0;
+  const dailyStatsMap: Record<
+    string,
+    { tokens: number; requests: number }
+  > = {};
+
+  if (usageData && usageData.length > 0) {
+    for (const row of usageData) {
+      const tokens = Number(row.tokens_used || 0);
+      const reqs = Number(row.requests_count || 0);
+
+      totalTokens += tokens;
+
+      const dateStr = row.date;
+      if (!dailyStatsMap[dateStr]) {
+        dailyStatsMap[dateStr] = { tokens: 0, requests: 0 };
+      }
+      dailyStatsMap[dateStr].tokens += tokens;
+      dailyStatsMap[dateStr].requests += reqs;
+    }
+  } else {
+    // Fallback: calculate dynamically from ia_audit_log if usage_stats is not populated
+    const { data: iaData } = await supabase
+      .from("ia_audit_log")
+      .select("tokens_used, created_at");
+
+    if (iaData) {
+      for (const row of iaData) {
+        const tokens = row.tokens_used || 0;
+        totalTokens += tokens;
+
+        const dateStr = new Date(row.created_at).toISOString().split("T")[0];
+        if (!dailyStatsMap[dateStr]) {
+          dailyStatsMap[dateStr] = { tokens: 0, requests: 0 };
+        }
+        dailyStatsMap[dateStr].tokens += tokens;
+        dailyStatsMap[dateStr].requests += 1;
+      }
+    }
+  }
+
+  const dailyStats = Object.entries(dailyStatsMap)
+    .map(([date, stats]) => ({
+      date,
+      ...stats,
+    }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  // Recent IA Audit Logs
+  const { data: recentLogsData } = await supabase
+    .from("ia_audit_log")
+    .select(
+      "id, ticket_id, model, latency_ms, tokens_used, created_at, tickets(title)",
+    )
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  const recentLogs = (recentLogsData || []).map((log: any) => {
+    const ticketTitle = Array.isArray(log.tickets)
+      ? log.tickets[0]?.title
+      : log.tickets?.title;
+
+    return {
+      id: log.id,
+      ticketId: log.ticket_id,
+      ticketTitle: ticketTitle || "Ticket Eliminado",
+      model: log.model || "gemini-2.5-flash",
+      latencyMs: log.latency_ms || 0,
+      tokensUsed: log.tokens_used || 0,
+      createdAt: log.created_at,
+    };
+  });
 
   // Agent Performance
   const { data: agents } = await supabase
@@ -68,7 +137,8 @@ export async function GET() {
     status: statusCounts,
     priority: priorityCounts,
     totalTokens,
-    estimatedCost: (totalTokens / 1000000) * 1.25, // Estimate for Gemini 1.5 Pro (higher cost/accuracy)
+    dailyStats,
+    recentLogs,
     agentStats,
   });
 }
