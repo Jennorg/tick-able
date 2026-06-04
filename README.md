@@ -57,16 +57,6 @@ TickAble utiliza un "Prompt de Sistema" estricto para forzar a Gemini a devolver
 - **Sugerencia:** Respuesta profesional pre-redactada.
 - **Riesgo:** Nivel de urgencia (Critical, High, Medium, Low).
 
-## 🔐 Credenciales de Acceso (Demo)
-
-Para probar las diferentes funcionalidades según el rol, puedes utilizar las siguientes credenciales:
-
-| Rol | Email | Contraseña |
-| :--- | :--- | :--- |
-| **Administrador** | `admin@test.com` | `admin123` |
-| **Agente** | `agent@test.com` | `agent123` |
-| **Usuario/Cliente** | `user@test.com` | `user123` |
-
 ### 📊 Control y Conteo del Consumo de Tokens
 
 Para garantizar un monitoreo de costos a escala y en tiempo real, TickAble cuenta con una arquitectura de observabilidad optimizada:
