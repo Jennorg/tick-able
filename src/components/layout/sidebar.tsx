@@ -2,6 +2,7 @@
 
 import {
   LayoutDashboard,
+  Link as LinkIcon,
   PieChart,
   Settings,
   Ticket,
@@ -15,7 +16,7 @@ import { cn } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase-client";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
+  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard", staffOnly: true },
   { icon: Ticket, label: "Tickets", href: "/tickets" },
   { icon: PieChart, label: "Métricas", href: "/metrics", staffOnly: true },
   { icon: Users, label: "Usuarios", href: "/admin/users", adminOnly: true },
@@ -23,6 +24,12 @@ const menuItems = [
     icon: Settings,
     label: "Categorías",
     href: "/admin/categories",
+    adminOnly: true,
+  },
+  {
+    icon: LinkIcon,
+    label: "Generador de Links",
+    href: "/admin/links",
     adminOnly: true,
   },
 ];

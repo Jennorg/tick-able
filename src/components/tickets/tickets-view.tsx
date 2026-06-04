@@ -37,6 +37,7 @@ interface Category {
 interface TicketsViewProps {
   tickets: Ticket[];
   categories: Category[];
+  role?: string;
 }
 
 const PRIORITY_COLORS: Record<string, string> = {
@@ -52,7 +53,7 @@ const STATUS_COLORS: Record<string, string> = {
   resolved: "bg-emerald-50 text-emerald-700 border-emerald-100",
 };
 
-export function TicketsView({ tickets, categories }: TicketsViewProps) {
+export function TicketsView({ tickets, categories, role }: TicketsViewProps) {
   const [viewMode, setViewMode] = React.useState<"board" | "list">("board");
 
   // Load selection from localStorage on client side mount
@@ -106,11 +107,13 @@ export function TicketsView({ tickets, categories }: TicketsViewProps) {
             </button>
           </div>
 
-          <Link href="/tickets/new">
-            <Button className="flex items-center gap-2">
-              <Plus className="h-4 w-4" /> Nuevo Ticket
-            </Button>
-          </Link>
+          {role === "user" && (
+            <Link href="/tickets/new">
+              <Button className="flex items-center gap-2">
+                <Plus className="h-4 w-4" /> Nuevo Ticket
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -126,11 +129,15 @@ export function TicketsView({ tickets, categories }: TicketsViewProps) {
               No se encontraron tickets
             </h3>
             <p className="text-[#8d99ae] max-w-xs mx-auto mt-2 text-sm">
-              Comienza creando tu primera solicitud de soporte.
+              {role === "user"
+                ? "Comienza creando tu primera solicitud de soporte."
+                : "No hay solicitudes pendientes en este momento."}
             </p>
-            <Link href="/tickets/new" className="mt-6 inline-block">
-              <Button variant="primary">Crear mi primer ticket</Button>
-            </Link>
+            {role === "user" && (
+              <Link href="/tickets/new" className="mt-6 inline-block">
+                <Button variant="primary">Crear mi primer ticket</Button>
+              </Link>
+            )}
           </CardContent>
         </Card>
       ) : viewMode === "board" ? (

@@ -62,6 +62,47 @@ export function DashboardClient({
   const inProgressCount = tickets.filter((t) => t.status === "in_progress").length;
   const resolvedCount = tickets.filter((t) => t.status === "resolved").length;
 
+  // Calculate real trends
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
+  startOfWeek.setHours(0, 0, 0, 0);
+
+  const startOfLastWeek = new Date(startOfWeek);
+  startOfLastWeek.setDate(startOfWeek.getDate() - 7);
+  const endOfLastWeek = new Date(startOfWeek);
+  endOfLastWeek.setMilliseconds(-1);
+
+  const ticketsThisMonth = tickets.filter(t => new Date(t.created_at) >= startOfMonth).length;
+  const ticketsLastMonth = tickets.filter(t => {
+    const d = new Date(t.created_at);
+    return d >= startOfLastMonth && d <= endOfLastMonth;
+  }).length;
+
+  const monthTrend = ticketsLastMonth === 0 
+    ? (ticketsThisMonth > 0 ? "+100%" : "0%") 
+    : `${(((ticketsThisMonth - ticketsLastMonth) / ticketsLastMonth) * 100).toFixed(1)}%`;
+
+  const ticketsThisWeek = tickets.filter(t => new Date(t.created_at) >= startOfWeek).length;
+  const ticketsLastWeek = tickets.filter(t => {
+    const d = new Date(t.created_at);
+    return d >= startOfLastWeek && d <= endOfLastWeek;
+  }).length;
+
+  const weekTrend = ticketsLastWeek === 0 
+    ? (ticketsThisWeek > 0 ? "+100%" : "0%") 
+    : `${(((ticketsThisWeek - ticketsLastWeek) / ticketsLastWeek) * 100).toFixed(1)}%`;
+
+  const historicalAverage = tickets.length / (Math.max(1, (now.getTime() - new Date(tickets[tickets.length - 1]?.created_at || now).getTime()) / (1000 * 60 * 60 * 24 * 30)));
+  const currentMonthVolume = ticketsThisMonth;
+  const historicalTrend = historicalAverage === 0 
+    ? "0%" 
+    : `${(((currentMonthVolume - historicalAverage) / historicalAverage) * 100).toFixed(1)}%`;
+
   const urgentTickets = tickets.filter(
     (t) => t.priority === "urgent" || t.priority === "high"
   );
@@ -72,7 +113,7 @@ export function DashboardClient({
       label: "Tickets Abiertos",
       value: openCount,
       icon: Ticket,
-      trend: "+2.4% este mes",
+      trend: `${monthTrend} este mes`,
       bg: "bg-white",
       textColor: "text-gray-900",
       labelColor: "text-gray-500",
@@ -82,7 +123,7 @@ export function DashboardClient({
       label: "En Progreso",
       value: inProgressCount,
       icon: Clock,
-      trend: "+1.2% esta semana",
+      trend: `${weekTrend} esta semana`,
       bg: "bg-white",
       textColor: "text-gray-900",
       labelColor: "text-gray-500",
@@ -92,7 +133,7 @@ export function DashboardClient({
       label: "Tickets Resueltos",
       value: resolvedCount,
       icon: CheckCircle,
-      trend: "+12.5% vs histórico",
+      trend: `${historicalTrend} vs histórico`,
       bg: "bg-[#ef233c]",
       textColor: "text-white",
       labelColor: "text-blue-100",
@@ -139,13 +180,10 @@ export function DashboardClient({
   });
 
   // Recharts: Area Chart Data (Support Trend)
-  // Generates past 9 months with simulated + real database volume
+  // Generates past 9 months with real database volume
   const monthsList = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const currentMonthIdx = new Date().getMonth();
   const areaChartData = [];
-  
-  // Baseline curves to look premium like the mockup
-  const baselines = [30, 45, 38, 55, 48, 70, 52, 60, 68, 55, 62, 75];
   
   for (let i = 8; i >= 0; i--) {
     const d = new Date();
@@ -158,10 +196,9 @@ export function DashboardClient({
       return tDate.getMonth() === d.getMonth() && tDate.getFullYear() === d.getFullYear();
     }).length;
 
-    // Merge baseline and real count
     areaChartData.push({
       name: monthName,
-      Tickets: realCount + baselines[d.getMonth() % baselines.length],
+      Tickets: realCount,
     });
   }
 
@@ -181,10 +218,10 @@ export function DashboardClient({
   };
 
   const donutData = [
-    { name: "Urgente", value: priorityCounts.urgent || 2 },
-    { name: "Alta", value: priorityCounts.high || 3 },
-    { name: "Media", value: priorityCounts.medium || 5 },
-    { name: "Baja", value: priorityCounts.low || 2 },
+    { name: "Urgente", value: priorityCounts.urgent },
+    { name: "Alta", value: priorityCounts.high },
+    { name: "Media", value: priorityCounts.medium },
+    { name: "Baja", value: priorityCounts.low },
   ];
 
   // Recharts: Traffic Source (Tickets by Category Progress Bars)
@@ -196,23 +233,15 @@ export function DashboardClient({
     };
   });
 
-  // Sort and display top categories, with placeholders if empty
-  const defaultCategories = [
-    { name: "Soporte Técnico", count: 8 },
-    { name: "Hardware / Equipos", count: 5 },
-    { name: "Red y Conectividad", count: 3 },
-  ];
+  // Sort and display top categories
+  const sortedCategories = categoryCounts.sort((a, b) => b.count - a.count).slice(0, 3);
 
-  const sortedCategories = categoryCounts.length > 0 
-    ? categoryCounts.sort((a, b) => b.count - a.count).slice(0, 3)
-    : defaultCategories;
-
-  const totalCategoriesCount = sortedCategories.reduce((sum, c) => sum + c.count, 0) || 16;
+  const totalCategoriesCount = sortedCategories.reduce((sum, c) => sum + c.count, 0);
   const progressBars = sortedCategories.map((c) => {
-    const percentage = Math.round((c.count / totalCategoriesCount) * 100);
+    const percentage = totalCategoriesCount > 0 ? Math.round((c.count / totalCategoriesCount) * 100) : 0;
     return {
       name: c.name,
-      percentage: percentage || 15,
+      percentage: percentage,
     };
   });
 
@@ -285,8 +314,11 @@ export function DashboardClient({
               </div>
               
               {/* Percentage Trend Badge */}
-              <div className="bg-green-50 border border-green-100 text-green-600 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                <span>+48.55%</span>
+              <div className={cn(
+                "px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1",
+                monthTrend.startsWith("+") ? "bg-green-50 border border-green-100 text-green-600" : "bg-red-50 border border-red-100 text-red-600"
+              )}>
+                <span>{monthTrend}</span>
               </div>
             </div>
 

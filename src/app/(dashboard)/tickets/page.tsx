@@ -32,9 +32,12 @@ export default async function TicketsPage({
     .select("*")
     .order("name");
 
+  const { data: { user } } = await supabase.auth.getUser();
+  const role = user?.user_metadata?.role || "user";
+
   return (
     <div className="container mx-auto py-2">
-      <TicketsView tickets={tickets || []} categories={categories || []} />
+      <TicketsView tickets={tickets || []} categories={categories || []} role={role} />
     </div>
   );
 }
