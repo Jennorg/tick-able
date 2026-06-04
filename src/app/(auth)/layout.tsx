@@ -2,6 +2,7 @@
 
 import { AuthForm } from "@/components/auth/AuthForm";
 import { usePathname } from "next/navigation";
+import { Suspense } from "react";
 
 export default function AuthLayout({
   children,
@@ -13,7 +14,9 @@ export default function AuthLayout({
 
   return (
     <>
-      <AuthForm mode={mode} />
+      <Suspense fallback={null}>
+        <AuthForm mode={mode} />
+      </Suspense>
       {children}
     </>
   );

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { analyzeTicket } from "@/lib/gemini";
+import { analyzeTicket, selectBestAgent } from "@/lib/gemini";
 import { createClient } from "@/lib/supabase-server";
 import { triggerTicketConfirmation, triggerHighPriorityAlert } from "@/lib/n8n";
 

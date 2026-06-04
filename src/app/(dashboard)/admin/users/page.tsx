@@ -232,7 +232,7 @@ export default function UsersPage() {
                   <p className="text-sm text-gray-600">Envía este enlace al nuevo miembro para que se registre directamente en tu organización:</p>
                   <div className="flex gap-2">
                     <Input readOnly value={inviteLink} className="text-xs" />
-                    <Button variant="secondary" size="icon" onClick={copyInvite}>
+                    <Button variant="secondary" size="sm" className="px-2" onClick={copyInvite}>
                       {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
                     </Button>
                   </div>

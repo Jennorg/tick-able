@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
+import { Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { TicketBoard } from "./ticket-board";
@@ -117,7 +118,9 @@ export function TicketsView({ tickets, categories, role }: TicketsViewProps) {
         </div>
       </div>
 
-      <TicketFilters categories={categories} viewMode={viewMode} />
+      <Suspense fallback={null}>
+        <TicketFilters categories={categories} viewMode={viewMode} />
+      </Suspense>
 
       {!tickets || tickets.length === 0 ? (
         <Card className="text-center py-20 border-dashed">

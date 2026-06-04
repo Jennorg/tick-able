@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
+import { GoogleGenerativeAI, SchemaType, Schema } from "@google/generative-ai";
 
 const apiKey = process.env.GEMINI_API_KEY;
 
@@ -9,7 +9,7 @@ if (!apiKey) {
 const genAI = new GoogleGenerativeAI(apiKey || "");
 
 // Schema definition for structured output - saves tokens by not explaining it in the prompt
-const responseSchema = {
+const responseSchema: Schema = {
   type: SchemaType.OBJECT,
   properties: {
     summary: {
@@ -26,6 +26,7 @@ const responseSchema = {
     },
     riskLevel: {
       type: SchemaType.STRING,
+      format: "enum",
       description: "Nivel de riesgo o urgencia detectado.",
       enum: ["critical", "high", "medium", "low"],
     },
@@ -34,7 +35,7 @@ const responseSchema = {
 };
 
 // Schema for agent selection
-const agentSelectionSchema = {
+const agentSelectionSchema: Schema = {
   type: SchemaType.OBJECT,
   properties: {
     selectedAgentId: {
