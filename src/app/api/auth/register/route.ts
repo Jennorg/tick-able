@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { createServiceClient } from "@/lib/supabase-service";
-import { createClient } from "@/lib/supabase-server";
+import { createClient } from "@supabase/supabase-js";
 
 export async function POST(request: Request) {
   try {
@@ -14,28 +13,62 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabase = await createClient();
-    const supabaseService = createServiceClient();
+    // Use anon client — organizations allow public insert via RLS
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
 
-    let finalOrgId = null;
-    let finalRole = isInvite ? (role || "agent") : "admin";
+    let finalOrgId: string | null = null;
+    const finalRole = isInvite ? (role || "agent") : "admin";
 
-    // 1. If it's an invite, verify organization first to get the ID
     if (isInvite && orgSlug) {
-      const { data: org, error: orgError } = await supabaseService
+      // Invited user: look up the existing organization
+      const { data: org, error: orgError } = await supabase
         .from("organizations")
         .select("id")
         .eq("slug", orgSlug)
         .single();
-      
+
       if (orgError || !org) {
-        return NextResponse.json({ error: "Invitación inválida o empresa no encontrada." }, { status: 400 });
+        return NextResponse.json(
+          { error: "Invitación inválida o empresa no encontrada." },
+          { status: 400 }
+        );
+      }
+      finalOrgId = org.id;
+    } else {
+      // New admin: CREATE THE ORG FIRST (before signup)
+      // This way we can pass the org_id in user metadata and the DB trigger
+      // will auto-create the profile with the correct organization_id.
+      const slug = companyName
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "");
+      const uniqueSlug = `${slug}-${Math.floor(Math.random() * 9000 + 1000)}`;
+
+      const { data: org, error: orgError } = await supabase
+        .from("organizations")
+        .insert([{ name: companyName, slug: uniqueSlug }])
+        .select("id")
+        .single();
+
+      if (orgError || !org) {
+        console.error("Org creation error:", orgError);
+        return NextResponse.json(
+          { error: "Error al crear la empresa. Intenta de nuevo." },
+          { status: 500 }
+        );
       }
       finalOrgId = org.id;
     }
 
-    // 2. Sign up the user
-    const { data: authData, error: authError } = await supabase.auth.signUp({
+    // Sign up the user with org_id + role in metadata
+    // The DB trigger handle_new_user will auto-create the profile row
+    // with (id, email, full_name, role, organization_id) from metadata.
+    const { error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -48,53 +81,19 @@ export async function POST(request: Request) {
     });
 
     if (authError) {
+      // If signup failed but we just created a new org, clean it up to avoid orphans
+      if (!isInvite && finalOrgId) {
+        await supabase.from("organizations").delete().eq("id", finalOrgId);
+      }
       return NextResponse.json({ error: authError.message }, { status: 400 });
-    }
-
-    const user = authData.user;
-    if (!user) {
-      return NextResponse.json({ error: "Error al crear usuario" }, { status: 500 });
-    }
-
-    // 3. If it's a NEW ADMIN (not an invite), create the organization now
-    if (!isInvite) {
-      const slug = companyName.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-");
-      
-      const { data: org, error: orgError } = await supabaseService
-        .from("organizations")
-        .insert([
-          { 
-            name: companyName, 
-            slug: `${slug}-${Math.floor(Math.random() * 1000)}` 
-          }
-        ])
-        .select()
-        .single();
-
-      if (orgError) {
-        console.error("Org creation error:", orgError);
-        return NextResponse.json({ error: "Usuario creado pero falló la creación de la empresa." }, { status: 500 });
-      }
-
-      // Link the admin to the newly created org
-      const { error: profileError } = await supabaseService
-        .from("profiles")
-        .update({
-          organization_id: org.id,
-          role: "admin"
-        })
-        .eq("id", user.id);
-
-      if (profileError) {
-        console.error("Profile link error:", profileError);
-      }
     }
 
     return NextResponse.json({ success: true });
   } catch (err: any) {
     console.error("Registration error:", err);
-    return NextResponse.json({ 
-      error: err.message || "Ocurrió un error inesperado durante el registro."
-    }, { status: 500 });
+    return NextResponse.json(
+      { error: err.message || "Ocurrió un error inesperado durante el registro." },
+      { status: 500 }
+    );
   }
 }

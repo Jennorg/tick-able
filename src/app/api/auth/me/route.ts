@@ -18,7 +18,10 @@ export async function GET() {
     .single();
 
   return NextResponse.json({
-    user,
+    user: {
+      ...user,
+      user_metadata: user.user_metadata,
+    },
     profile,
     organization: profile?.organizations,
   });

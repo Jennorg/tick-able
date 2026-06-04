@@ -24,9 +24,21 @@ export async function GET() {
 
   const orgId = profile?.organization_id;
 
+  if (!isSuperAdmin && !orgId) {
+    return NextResponse.json({
+      status: {},
+      priority: {},
+      totalTokens: 0,
+      estimatedCost: 0,
+      dailyStats: [],
+      recentLogs: [],
+      agentStats: [],
+    });
+  }
+
   // Tickets by status
   let ticketsQuery = supabase.from("tickets").select("status");
-  if (!isSuperAdmin && orgId) {
+  if (!isSuperAdmin) {
     ticketsQuery = ticketsQuery.eq("organization_id", orgId);
   }
   const { data: statusData } = await ticketsQuery;
@@ -38,7 +50,7 @@ export async function GET() {
 
   // Tickets by priority
   let priorityQuery = supabase.from("tickets").select("priority");
-  if (!isSuperAdmin && orgId) {
+  if (!isSuperAdmin) {
     priorityQuery = priorityQuery.eq("organization_id", orgId);
   }
   const { data: priorityData } = await priorityQuery;
@@ -62,7 +74,7 @@ export async function GET() {
     .from("ia_audit_log")
     .select("tokens_used, created_at");
   
-  if (!isSuperAdmin && orgId) {
+  if (!isSuperAdmin) {
     iaQuery = iaQuery.eq("organization_id", orgId);
   }
 
@@ -96,7 +108,7 @@ export async function GET() {
       "id, ticket_id, model, latency_ms, tokens_used, created_at, tickets(title)",
     );
   
-  if (!isSuperAdmin && orgId) {
+  if (!isSuperAdmin) {
     recentLogsQuery = recentLogsQuery.eq("organization_id", orgId);
   }
 
@@ -126,7 +138,7 @@ export async function GET() {
     .select("id, full_name, role")
     .in("role", ["agent", "admin"]);
   
-  if (!isSuperAdmin && orgId) {
+  if (!isSuperAdmin) {
     agentsQuery = agentsQuery.eq("organization_id", orgId);
   }
   const { data: agents } = await agentsQuery;
@@ -136,7 +148,7 @@ export async function GET() {
     .select("assigned_to, status")
     .not("assigned_to", "is", null);
   
-  if (!isSuperAdmin && orgId) {
+  if (!isSuperAdmin) {
     agentTicketsQuery = agentTicketsQuery.eq("organization_id", orgId);
   }
   const { data: agentTickets } = await agentTicketsQuery;

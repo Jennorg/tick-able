@@ -1,6 +1,6 @@
 "use client";
 
-import { Copy, Link as LinkIcon, Sparkles } from "lucide-react";
+import { Copy, Link as LinkIcon, Sparkles, Loader2, Check } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,13 +11,13 @@ import { Textarea } from "@/components/ui/textarea";
 export default function LinkGeneratorPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [orgSlug, setOrgSlug] = useState("");
+  const [orgName, setOrgName] = useState("");
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     priority: "medium",
     category: "",
   });
-  const [generatedUrl, setGeneratedUrl] = useState("");
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -37,6 +37,7 @@ export default function LinkGeneratorPage() {
           const authData = text ? JSON.parse(text) : {};
           if (authData.organization?.slug) {
             setOrgSlug(authData.organization.slug);
+            setOrgName(authData.organization.name || "");
           }
         }
       } catch (err) {
@@ -46,22 +47,18 @@ export default function LinkGeneratorPage() {
     fetchData();
   }, []);
 
-  const generateLink = () => {
-    // In a real app, we'd get the actual base URL
-    const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
-    const slug = orgSlug || "mi-empresa"; // Fallback or fetched
-    
-    const params = new URLSearchParams();
-    if (formData.title) params.set("title", formData.title);
-    if (formData.description) params.set("description", formData.description);
-    if (formData.priority) params.set("priority", formData.priority);
-    if (formData.category) params.set("category", formData.category);
+  // Compute the URL dynamically based on form data and fetched organization slug
+  const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+  const params = new URLSearchParams();
+  if (formData.title) params.set("title", formData.title);
+  if (formData.description) params.set("description", formData.description);
+  if (formData.priority) params.set("priority", formData.priority);
+  if (formData.category) params.set("category", formData.category);
 
-    const url = `${baseUrl}/portal/${slug}?${params.toString()}`;
-    setGeneratedUrl(url);
-  };
+  const generatedUrl = orgSlug ? `${baseUrl}/portal/${orgSlug}?${params.toString()}` : "";
 
   const copyToClipboard = () => {
+    if (!generatedUrl) return;
     navigator.clipboard.writeText(generatedUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -77,15 +74,19 @@ export default function LinkGeneratorPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <Card className="border-gray-100 shadow-sm rounded-2xl">
           <CardHeader>
-            <CardTitle className="text-lg">Configuración del Link</CardTitle>
+            <CardTitle className="text-lg text-[#2b2d42]">Configuración del Link</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Input
-              label="Slug de la Organización (ej: mi-empresa)"
-              placeholder="mi-empresa"
-              value={orgSlug}
-              onChange={(e) => setOrgSlug(e.target.value)}
-            />
+            {/* Read-Only Organization Info */}
+            <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Organización Activa</p>
+                <p className="text-sm font-extrabold text-[#2b2d42]">{orgName || "Cargando..."}</p>
+              </div>
+              <span className="px-3 py-1 bg-red-50 text-[#ef233c] text-xs font-mono font-bold rounded-lg border border-red-100/50">
+                {orgSlug || "cargando..."}
+              </span>
+            </div>
             
             <div className="border-t pt-4 space-y-4">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Campos Pre-llenados (Opcional)</p>
@@ -124,46 +125,53 @@ export default function LinkGeneratorPage() {
                 />
               </div>
             </div>
-
-            <Button 
-              className="w-full bg-[#ef233c] hover:bg-red-700 h-11 rounded-xl font-bold"
-              onClick={generateLink}
-            >
-              <Sparkles className="h-4 w-4 mr-2" /> Generar Enlace
-            </Button>
           </CardContent>
         </Card>
-
-        <Card className="border-gray-100 shadow-sm rounded-2xl bg-gray-50/50">
-          <CardHeader>
-            <CardTitle className="text-lg">Enlace Generado</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {generatedUrl ? (
-              <div className="space-y-4">
-                <div className="p-4 bg-white border border-gray-200 rounded-xl break-all font-mono text-sm text-blue-600">
-                  {generatedUrl}
+ 
+        <Card className="border-gray-100 shadow-sm rounded-2xl bg-gray-50/50 flex flex-col justify-between">
+          <div>
+            <CardHeader>
+              <CardTitle className="text-lg text-[#2b2d42]">Enlace Generado en Tiempo Real</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {orgSlug ? (
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-600">Este enlace se actualiza automáticamente con tus cambios arriba. Cópialo para compartirlo:</p>
+                  <div className="p-4 bg-white border border-gray-200 rounded-xl break-all font-mono text-sm text-blue-600 shadow-sm select-all">
+                    {generatedUrl}
+                  </div>
+                  <Button 
+                    className="w-full bg-[#ef233c] hover:bg-red-700 h-11 text-sm font-bold rounded-xl transition-all shadow-md flex items-center justify-center gap-2 text-white"
+                    onClick={copyToClipboard}
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="h-4 w-4 animate-in zoom-in duration-200" />
+                        ¡Enlace Copiado!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4" />
+                        Copiar Enlace
+                      </>
+                    )}
+                  </Button>
                 </div>
-                <Button 
-                  variant="secondary" 
-                  className="w-full h-11 rounded-xl font-bold border-gray-200 hover:bg-white transition-all"
-                  onClick={copyToClipboard}
-                >
-                  {copied ? "¡Copiado!" : <><Copy className="h-4 w-4 mr-2" /> Copiar Enlace</>}
-                </Button>
-                <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl">
-                  <p className="text-xs text-blue-700 leading-relaxed">
-                    <strong>Tip:</strong> Puedes enviar este link por email, WhatsApp o código QR. El usuario que lo abra verá el formulario con los campos que configuraste ya listos para enviar.
-                  </p>
+              ) : (
+                <div className="h-48 flex flex-col items-center justify-center text-gray-400 space-y-2">
+                  <Loader2 className="h-8 w-8 animate-spin text-[#ef233c]" />
+                  <p className="text-sm">Cargando datos de organización...</p>
                 </div>
-              </div>
-            ) : (
-              <div className="h-48 flex flex-col items-center justify-center text-gray-400 space-y-2">
-                <LinkIcon className="h-12 w-12 opacity-20" />
-                <p className="text-sm">Configura los campos y genera un link</p>
-              </div>
-            )}
-          </CardContent>
+              )}
+            </CardContent>
+          </div>
+          <div className="p-6 border-t bg-white rounded-b-2xl">
+            <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl">
+              <p className="text-xs text-blue-700 leading-relaxed">
+                <strong>Tip:</strong> Puedes enviar este link por email, WhatsApp o código QR. El usuario que lo abra verá el formulario con los campos que configuraste ya listos para enviar.
+              </p>
+            </div>
+          </div>
         </Card>
       </div>
     </div>

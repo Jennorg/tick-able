@@ -21,9 +21,10 @@ export async function GET() {
       .eq("id", user?.id)
       .single();
     
-    if (profile?.organization_id) {
-      query = query.eq("organization_id", profile.organization_id);
+    if (!profile?.organization_id) {
+      return NextResponse.json([]);
     }
+    query = query.eq("organization_id", profile.organization_id);
   }
 
   const { data, error } = await query;

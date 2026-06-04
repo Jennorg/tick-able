@@ -193,24 +193,23 @@ export async function GET() {
   let query = supabase
     .from("tickets")
     .select("*, profiles!created_by(full_name), categories(name)");
+if (!isSuperAdmin) {
+  // Get organization_id from profile
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("organization_id")
+    .eq("id", user?.id)
+    .single();
 
-  if (!isSuperAdmin) {
-    // Get organization_id from profile
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("organization_id")
-      .eq("id", user?.id)
-      .single();
-    
-    if (profile?.organization_id) {
-      query = query.eq("organization_id", profile.organization_id);
-    } else if (user) {
-      // If user has no org and is not superadmin, they shouldn't see anything?
-      // Or maybe they see only tickets they created? 
-      // For now, let's just filter by org if it exists.
-    }
+  if (profile?.organization_id) {
+    query = query.eq("organization_id", profile.organization_id);
+  } else if (role === "user") {
+    query = query.eq("created_by", user?.id);
+  } else {
+    // If staff has no org and is not superadmin, they shouldn't see all tickets
+    return NextResponse.json([]);
   }
-
+}
   const { data, error } = await query.order("created_at", { ascending: false });
 
   if (error)

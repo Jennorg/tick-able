@@ -94,7 +94,8 @@ export function Sidebar({
         <nav className="p-4 space-y-2">
           {menuItems.map((item) => {
             if (isSuperAdmin) {
-              // Superadmin sees everything
+              // Superadmin sees everything EXCEPT "Tickets" and "Generador de Links" as requested
+              if (item.label === "Tickets" || item.label === "Generador de Links") return null;
             } else {
               if (item.adminOnly && role !== "admin") return null;
               if (item.staffOnly && role === "user") return null;
@@ -130,7 +131,8 @@ export function Sidebar({
           <nav className="p-3 space-y-2 w-64">
             {menuItems.map((item) => {
               if (isSuperAdmin) {
-                // Superadmin sees everything
+                // Superadmin sees everything EXCEPT "Tickets" and "Generador de Links" as requested
+                if (item.label === "Tickets" || item.label === "Generador de Links") return null;
               } else {
                 if (item.adminOnly && role !== "admin") return null;
                 if (item.staffOnly && role === "user") return null;
