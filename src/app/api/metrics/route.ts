@@ -125,20 +125,43 @@ export async function GET() {
     const tickets = (agentTickets || []).filter(
       (t) => t.assigned_to === agent.id,
     );
+    const assigned = tickets.length;
+    const closed = tickets.filter((t) => t.status === "resolved").length;
+    
+    // Calculate a "satisfaction" score based on resolution rate (scaled to 5.0)
+    // Formula: 3.0 (base) + (resolution_rate * 2.0)
+    const resolutionRate = assigned > 0 ? closed / assigned : 0;
+    const satisfaction = (3.0 + (resolutionRate * 2.0)).toFixed(1);
+
     return {
       name: agent.full_name,
-      assigned: tickets.length,
-      closed: tickets.filter((t) => t.status === "resolved").length,
-      satisfaction: (Math.random() * 2 + 3).toFixed(1), // Random 3.0 - 5.0
+      assigned,
+      closed,
+      satisfaction: assigned > 0 ? satisfaction : "-",
     };
   });
+
+  // Calculate costs (approximate for Gemini 1.5 Flash: $0.075 per 1M tokens)
+  const COST_PER_1M_TOKENS = 0.075;
+  const calculateCost = (tokens: number) => (tokens / 1000000) * COST_PER_1M_TOKENS;
+
+  const dailyStatsWithCost = dailyStats.map(s => ({
+    ...s,
+    cost: calculateCost(s.tokens)
+  }));
+
+  const recentLogsWithCost = recentLogs.map(l => ({
+    ...l,
+    estimatedCost: calculateCost(l.tokensUsed)
+  }));
 
   return NextResponse.json({
     status: statusCounts,
     priority: priorityCounts,
     totalTokens,
-    dailyStats,
-    recentLogs,
+    estimatedCost: calculateCost(totalTokens),
+    dailyStats: dailyStatsWithCost,
+    recentLogs: recentLogsWithCost,
     agentStats,
   });
 }

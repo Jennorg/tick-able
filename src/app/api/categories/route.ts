@@ -24,6 +24,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
+  // Get organization_id from profile
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("organization_id")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile?.organization_id) {
+    return NextResponse.json({ error: "Organization not found" }, { status: 400 });
+  }
+
   const body = await request.json();
   const { name, description } = body;
 
@@ -32,7 +43,11 @@ export async function POST(request: Request) {
 
   const { data, error } = await supabase
     .from("categories")
-    .insert([{ name, description }])
+    .insert([{ 
+      name, 
+      description, 
+      organization_id: profile.organization_id 
+    }])
     .select()
     .single();
 
