@@ -216,14 +216,12 @@ export default async function TicketDetailPage({
         </div>
 
         {/* Sidebar IA Panel & Actions */}
-        <aside className="w-full lg:w-80 space-y-6">
-          {isStaff && (
+        {isStaff && (
+          <aside className="w-full lg:w-80 space-y-6">
             <Card className="border-blue-200 bg-blue-50">
               <IaPanelRealtime ticket={ticket} />
             </Card>
-          )}
 
-          {isStaff && (
             <Card>
               <CardHeader className="pb-2 border-b">
                 <CardTitle className="text-sm">Acciones de Agente</CardTitle>
@@ -236,8 +234,8 @@ export default async function TicketDetailPage({
                 />
               </CardContent>
             </Card>
-          )}
-        </aside>
+          </aside>
+        )}
       </div>
     </div>
   );

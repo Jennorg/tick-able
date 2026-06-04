@@ -21,6 +21,37 @@ export async function createTicket(formData: FormData) {
   const priority = formData.get("priority") as string;
   const categoryId = formData.get("categoryId") as string;
 
+  // Fetch company_id and organization_id from profile
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("organization_id, company_id")
+    .eq("id", user.id)
+    .single();
+
+  let orgId = profile?.organization_id;
+  let companyId = profile?.company_id;
+
+  // Fallbacks to default if not present
+  if (!orgId || !companyId) {
+    const { data: defaultOrg } = await supabase
+      .from("organizations")
+      .select("id")
+      .eq("slug", "default")
+      .single();
+    if (defaultOrg) {
+      orgId = orgId || defaultOrg.id;
+    }
+
+    const { data: defaultCompany } = await supabase
+      .from("companies")
+      .select("id")
+      .eq("slug", "default")
+      .single();
+    if (defaultCompany) {
+      companyId = companyId || defaultCompany.id;
+    }
+  }
+
   // 1. Insert ticket immediately
   const { data: ticket, error: ticketError } = await supabase
     .from("tickets")
@@ -30,6 +61,8 @@ export async function createTicket(formData: FormData) {
       priority,
       category_id: categoryId || null,
       created_by: user.id,
+      organization_id: orgId || null,
+      company_id: companyId || null,
     })
     .select()
     .single();

@@ -1,5 +1,6 @@
 export async function triggerTicketConfirmation(ticket: { id: string; title: string; email: string; priority: string }) {
   const url = process.env.N8N_TICKET_CONFIRMATION_WEBHOOK;
+  console.log(`[n8n Webhook] Triggering ticket confirmation for ticket ${ticket.id}. URL: ${url}`);
   if (!url) {
     console.error("N8N_TICKET_CONFIRMATION_WEBHOOK is not defined in environment variables.");
     return false;
@@ -19,6 +20,8 @@ export async function triggerTicketConfirmation(ticket: { id: string; title: str
         },
       }),
     });
+    const text = await res.text();
+    console.log(`[n8n Webhook] Confirmation response status: ${res.status}, body: ${text}`);
     if (!res.ok) {
       console.error(`n8n confirmation webhook returned status ${res.status}`);
     }
@@ -31,6 +34,7 @@ export async function triggerTicketConfirmation(ticket: { id: string; title: str
 
 export async function triggerHighPriorityAlert(ticket: { id: string; title: string; priority: string }) {
   const url = process.env.N8N_HIGH_PRIORITY_WEBHOOK;
+  console.log(`[n8n Webhook] Triggering high priority alert for ticket ${ticket.id} (${ticket.priority}). URL: ${url}`);
   if (!url) {
     console.error("N8N_HIGH_PRIORITY_WEBHOOK is not defined in environment variables.");
     return false;
@@ -49,6 +53,8 @@ export async function triggerHighPriorityAlert(ticket: { id: string; title: stri
         },
       }),
     });
+    const text = await res.text();
+    console.log(`[n8n Webhook] High priority response status: ${res.status}, body: ${text}`);
     if (!res.ok) {
       console.error(`n8n priority webhook returned status ${res.status}`);
     }

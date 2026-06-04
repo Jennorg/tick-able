@@ -26,11 +26,11 @@ async function run() {
   const { data: comments, error: commErr } = await supabase.from("comments").select("*").limit(1);
   console.log("Comments columns:", comments ? Object.keys(comments[0] || {}) : "No data", commErr);
 
-  const { data: notifications, error: notifErr } = await supabase.from("notifications").select("*").limit(1);
-  console.log("Notifications columns:", notifications ? Object.keys(notifications[0] || {}) : "No data", notifErr);
+  const { data: organizations, error: orgErr } = await supabase.from("organizations").select("*").limit(1);
+  console.log("Organizations columns:", organizations ? Object.keys(organizations[0] || {}) : "No data", orgErr);
 
-  const { data: usage_stats, error: usageErr } = await supabase.from("usage_stats").select("*").limit(1);
-  console.log("usage_stats columns:", usage_stats ? Object.keys(usage_stats[0] || {}) : "No data", usageErr);
+  const { data: companies, error: compErr } = await supabase.from("companies").select("*").limit(1);
+  console.log("Companies columns:", companies ? Object.keys(companies[0] || {}) : "No data", compErr);
 
   const { data: tickets, error: ticketErr } = await supabase.from("tickets").select("*").limit(1);
   console.log("Tickets columns:", tickets ? Object.keys(tickets[0] || {}) : "No data", ticketErr);

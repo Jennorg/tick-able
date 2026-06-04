@@ -29,24 +29,68 @@ export async function POST(request: Request) {
 
   let finalOrgId = organization_id;
   let finalCreatedBy = user?.id;
+  let finalCompanyId = null;
 
-  // If authenticated, get organization_id from profile if not provided
+  // If authenticated, get organization_id and company_id from profile
   if (user) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("organization_id")
+      .select("organization_id, company_id")
       .eq("id", user.id)
       .single();
     
     if (profile) {
-      finalOrgId = profile.organization_id;
+      finalOrgId = profile.organization_id || finalOrgId;
+      finalCompanyId = profile.company_id;
     }
   }
 
-  // Ensure we have an organization_id
-  if (!finalOrgId) {
+  // Resolve company_id if we only have organization_id
+  if (!finalCompanyId && finalOrgId) {
+    const { data: org } = await supabase
+      .from("organizations")
+      .select("slug")
+      .eq("id", finalOrgId)
+      .single();
+    
+    if (org?.slug) {
+      const { data: company } = await supabase
+        .from("companies")
+        .select("id")
+        .eq("slug", org.slug)
+        .single();
+      
+      if (company) {
+        finalCompanyId = company.id;
+      }
+    }
+  }
+
+  // Fallbacks if not resolved
+  if (!finalOrgId || !finalCompanyId) {
+    const { data: defaultOrg } = await supabase
+      .from("organizations")
+      .select("id")
+      .eq("slug", "default")
+      .single();
+    if (defaultOrg) {
+      finalOrgId = finalOrgId || defaultOrg.id;
+    }
+
+    const { data: defaultCompany } = await supabase
+      .from("companies")
+      .select("id")
+      .eq("slug", "default")
+      .single();
+    if (defaultCompany) {
+      finalCompanyId = finalCompanyId || defaultCompany.id;
+    }
+  }
+
+  // Ensure we have organization_id and company_id
+  if (!finalOrgId || !finalCompanyId) {
     return NextResponse.json(
-      { error: "Organization ID is required" },
+      { error: "Organization and Company configuration not found" },
       { status: 400 },
     );
   }
@@ -62,6 +106,7 @@ export async function POST(request: Request) {
         category_id,
         created_by: finalCreatedBy,
         organization_id: finalOrgId,
+        company_id: finalCompanyId,
         customer_email: customer_email || user?.email,
         customer_name: customer_name || user?.user_metadata?.full_name,
         status: "open",
