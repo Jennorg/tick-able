@@ -187,13 +187,30 @@ export async function GET() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  const role = user?.user_metadata?.role;
+  const isSuperAdmin = user?.user_metadata?.is_superadmin === true || role === "superadmin";
 
   let query = supabase
     .from("tickets")
     .select("*, profiles!created_by(full_name), categories(name)");
 
-  // If authenticated, RLS will handle organization filtering.
-  // We just ensure we order it correctly.
+  if (!isSuperAdmin) {
+    // Get organization_id from profile
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("organization_id")
+      .eq("id", user?.id)
+      .single();
+    
+    if (profile?.organization_id) {
+      query = query.eq("organization_id", profile.organization_id);
+    } else if (user) {
+      // If user has no org and is not superadmin, they shouldn't see anything?
+      // Or maybe they see only tickets they created? 
+      // For now, let's just filter by org if it exists.
+    }
+  }
+
   const { data, error } = await query.order("created_at", { ascending: false });
 
   if (error)

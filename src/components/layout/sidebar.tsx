@@ -43,6 +43,7 @@ export function Sidebar({
 }) {
   const pathname = usePathname();
   const [role, setRole] = useState<string>("user");
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   useEffect(() => {
     async function getRole() {
@@ -51,7 +52,9 @@ export function Sidebar({
         data: { user },
       } = await supabase.auth.getUser();
       if (user) {
-        setRole(user.user_metadata?.role || "user");
+        const userRole = user.user_metadata?.role || "user";
+        setRole(userRole);
+        setIsSuperAdmin(user.user_metadata?.is_superadmin === true || userRole === "superadmin");
       }
     }
     getRole();
@@ -90,8 +93,12 @@ export function Sidebar({
 
         <nav className="p-4 space-y-2">
           {menuItems.map((item) => {
-            if (item.adminOnly && role !== "admin") return null;
-            if (item.staffOnly && role === "user") return null;
+            if (isSuperAdmin) {
+              // Superadmin sees everything
+            } else {
+              if (item.adminOnly && role !== "admin") return null;
+              if (item.staffOnly && role === "user") return null;
+            }
 
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -122,8 +129,12 @@ export function Sidebar({
         <div className="absolute left-0 top-0 bottom-0 w-16 group-hover:w-64 bg-white border-r transition-all duration-300 ease-in-out flex flex-col overflow-hidden shadow-sm group-hover:shadow-md">
           <nav className="p-3 space-y-2 w-64">
             {menuItems.map((item) => {
-              if (item.adminOnly && role !== "admin") return null;
-              if (item.staffOnly && role === "user") return null;
+              if (isSuperAdmin) {
+                // Superadmin sees everything
+              } else {
+                if (item.adminOnly && role !== "admin") return null;
+                if (item.staffOnly && role === "user") return null;
+              }
 
               const Icon = item.icon;
               const isActive = pathname === item.href;

@@ -8,13 +8,38 @@ export async function GET(
 ) {
   const supabase = await createClient();
   const { id } = await params;
-  const { data, error } = await supabase
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const role = user?.user_metadata?.role;
+  const isSuperAdmin = user?.user_metadata?.is_superadmin === true || role === "superadmin";
+
+  let query = supabase
     .from("tickets")
     .select(
       "*, profiles!created_by(full_name, avatar_url), categories(name), assigned_to_profile:profiles!assigned_to(full_name)",
     )
-    .eq("id", id)
-    .single();
+    .eq("id", id);
+
+  if (!isSuperAdmin) {
+    // Get organization_id from profile
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("organization_id")
+      .eq("id", user?.id)
+      .single();
+    
+    if (profile?.organization_id) {
+      query = query.eq("organization_id", profile.organization_id);
+    } else if (role === "user") {
+      query = query.eq("created_by", user?.id);
+    } else {
+      // If staff has no org and is not superadmin, they see nothing?
+      return NextResponse.json({ error: "Unauthorized: No organization assigned" }, { status: 403 });
+    }
+  }
+
+  const { data, error } = await query.single();
 
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -33,22 +58,37 @@ export async function PATCH(
     data: { user },
   } = await supabase.auth.getUser();
   const role = user?.user_metadata?.role;
-  if (role !== "admin" && role !== "agent") {
+  const isSuperAdmin = user?.user_metadata?.is_superadmin === true || role === "superadmin";
+
+  if (role !== "admin" && role !== "agent" && !isSuperAdmin) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
   const body = await request.json();
   const { status, assigned_to, priority } = body;
 
-  // Fetch current ticket to compare and get creator
+  // Fetch current ticket
   const { data: currentTicket } = await supabase
     .from("tickets")
-    .select("status, assigned_to, created_by, title, priority")
+    .select("status, assigned_to, created_by, title, priority, organization_id")
     .eq("id", id)
     .single();
 
   if (!currentTicket) {
     return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
+  }
+
+  // If not superadmin, ensure org matches
+  if (!isSuperAdmin) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("organization_id")
+      .eq("id", user?.id)
+      .single();
+    
+    if (profile?.organization_id !== currentTicket.organization_id) {
+      return NextResponse.json({ error: "Unauthorized: Ticket belongs to another organization" }, { status: 403 });
+    }
   }
 
   const { data: updatedTicket, error } = await supabase

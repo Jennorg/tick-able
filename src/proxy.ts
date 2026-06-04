@@ -35,6 +35,7 @@ export async function proxy(request: NextRequest) {
 
   const { pathname, origin } = request.nextUrl;
   const role = user?.user_metadata?.role || "user";
+  const isSuperAdmin = user?.user_metadata?.is_superadmin === true || role === "superadmin";
 
   // Protect routes
   if (
@@ -58,7 +59,7 @@ export async function proxy(request: NextRequest) {
     const defaultRedirect = role === "user" ? "/tickets" : "/dashboard";
 
     // Role-based protection
-    if (pathname.startsWith("/admin") && role !== "admin") {
+    if (pathname.startsWith("/admin") && role !== "admin" && !isSuperAdmin) {
       return NextResponse.redirect(new URL(defaultRedirect, origin));
     }
 
@@ -70,7 +71,7 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(new URL("/tickets", origin));
     }
 
-    if (pathname.startsWith("/tickets/new") && role !== "user") {
+    if (pathname.startsWith("/tickets/new") && role !== "user" && !isSuperAdmin) {
       return NextResponse.redirect(new URL("/dashboard", origin));
     }
   }

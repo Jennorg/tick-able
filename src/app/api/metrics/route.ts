@@ -9,12 +9,27 @@ export async function GET() {
     data: { user },
   } = await supabase.auth.getUser();
   const role = user?.user_metadata?.role;
-  if (role !== "admin" && role !== "agent") {
+  const isSuperAdmin = user?.user_metadata?.is_superadmin === true || role === "superadmin";
+
+  if (role !== "admin" && role !== "agent" && role !== "superadmin") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
+  // Get user's organization_id
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("organization_id")
+    .eq("id", user?.id)
+    .single();
+
+  const orgId = profile?.organization_id;
+
   // Tickets by status
-  const { data: statusData } = await supabase.from("tickets").select("status");
+  let ticketsQuery = supabase.from("tickets").select("status");
+  if (!isSuperAdmin && orgId) {
+    ticketsQuery = ticketsQuery.eq("organization_id", orgId);
+  }
+  const { data: statusData } = await ticketsQuery;
 
   const statusCounts = (statusData || []).reduce((acc: any, curr) => {
     acc[curr.status] = (acc[curr.status] || 0) + 1;
@@ -22,59 +37,48 @@ export async function GET() {
   }, {});
 
   // Tickets by priority
-  const { data: priorityData } = await supabase
-    .from("tickets")
-    .select("priority");
+  let priorityQuery = supabase.from("tickets").select("priority");
+  if (!isSuperAdmin && orgId) {
+    priorityQuery = priorityQuery.eq("organization_id", orgId);
+  }
+  const { data: priorityData } = await priorityQuery;
 
   const priorityCounts = (priorityData || []).reduce((acc: any, curr) => {
     acc[curr.priority] = (acc[curr.priority] || 0) + 1;
     return acc;
   }, {});
 
-  // IA Tokens usage from usage_stats
-  const { data: usageData } = await supabase
-    .from("usage_stats")
-    .select("date, model, tokens_used, requests_count")
-    .order("date", { ascending: true });
-
+  // IA Tokens usage - usage_stats is global or by org? 
+  // If we don't have org in usage_stats, we use ia_audit_log which HAS organization_id
+  
   let totalTokens = 0;
   const dailyStatsMap: Record<
     string,
     { tokens: number; requests: number }
   > = {};
 
-  if (usageData && usageData.length > 0) {
-    for (const row of usageData) {
-      const tokens = Number(row.tokens_used || 0);
-      const reqs = Number(row.requests_count || 0);
+  // IA Audit Logs (filtered by org)
+  let iaQuery = supabase
+    .from("ia_audit_log")
+    .select("tokens_used, created_at");
+  
+  if (!isSuperAdmin && orgId) {
+    iaQuery = iaQuery.eq("organization_id", orgId);
+  }
 
+  const { data: iaData } = await iaQuery;
+
+  if (iaData) {
+    for (const row of iaData) {
+      const tokens = row.tokens_used || 0;
       totalTokens += tokens;
 
-      const dateStr = row.date;
+      const dateStr = new Date(row.created_at).toISOString().split("T")[0];
       if (!dailyStatsMap[dateStr]) {
         dailyStatsMap[dateStr] = { tokens: 0, requests: 0 };
       }
       dailyStatsMap[dateStr].tokens += tokens;
-      dailyStatsMap[dateStr].requests += reqs;
-    }
-  } else {
-    // Fallback: calculate dynamically from ia_audit_log if usage_stats is not populated
-    const { data: iaData } = await supabase
-      .from("ia_audit_log")
-      .select("tokens_used, created_at");
-
-    if (iaData) {
-      for (const row of iaData) {
-        const tokens = row.tokens_used || 0;
-        totalTokens += tokens;
-
-        const dateStr = new Date(row.created_at).toISOString().split("T")[0];
-        if (!dailyStatsMap[dateStr]) {
-          dailyStatsMap[dateStr] = { tokens: 0, requests: 0 };
-        }
-        dailyStatsMap[dateStr].tokens += tokens;
-        dailyStatsMap[dateStr].requests += 1;
-      }
+      dailyStatsMap[dateStr].requests += 1;
     }
   }
 
@@ -86,11 +90,17 @@ export async function GET() {
     .sort((a, b) => a.date.localeCompare(b.date));
 
   // Recent IA Audit Logs
-  const { data: recentLogsData } = await supabase
+  let recentLogsQuery = supabase
     .from("ia_audit_log")
     .select(
       "id, ticket_id, model, latency_ms, tokens_used, created_at, tickets(title)",
-    )
+    );
+  
+  if (!isSuperAdmin && orgId) {
+    recentLogsQuery = recentLogsQuery.eq("organization_id", orgId);
+  }
+
+  const { data: recentLogsData } = await recentLogsQuery
     .order("created_at", { ascending: false })
     .limit(10);
 
@@ -103,7 +113,7 @@ export async function GET() {
       id: log.id,
       ticketId: log.ticket_id,
       ticketTitle: ticketTitle || "Ticket Eliminado",
-      model: log.model || "gemini-2.5-flash",
+      model: log.model || "gemini-2.0-flash",
       latencyMs: log.latency_ms || 0,
       tokensUsed: log.tokens_used || 0,
       createdAt: log.created_at,
@@ -111,15 +121,25 @@ export async function GET() {
   });
 
   // Agent Performance
-  const { data: agents } = await supabase
+  let agentsQuery = supabase
     .from("profiles")
     .select("id, full_name, role")
     .in("role", ["agent", "admin"]);
+  
+  if (!isSuperAdmin && orgId) {
+    agentsQuery = agentsQuery.eq("organization_id", orgId);
+  }
+  const { data: agents } = await agentsQuery;
 
-  const { data: agentTickets } = await supabase
+  let agentTicketsQuery = supabase
     .from("tickets")
     .select("assigned_to, status")
     .not("assigned_to", "is", null);
+  
+  if (!isSuperAdmin && orgId) {
+    agentTicketsQuery = agentTicketsQuery.eq("organization_id", orgId);
+  }
+  const { data: agentTickets } = await agentTicketsQuery;
 
   const agentStats = (agents || []).map((agent) => {
     const tickets = (agentTickets || []).filter(
@@ -129,7 +149,6 @@ export async function GET() {
     const closed = tickets.filter((t) => t.status === "resolved").length;
     
     // Calculate a "satisfaction" score based on resolution rate (scaled to 5.0)
-    // Formula: 3.0 (base) + (resolution_rate * 2.0)
     const resolutionRate = assigned > 0 ? closed / assigned : 0;
     const satisfaction = (3.0 + (resolutionRate * 2.0)).toFixed(1);
 

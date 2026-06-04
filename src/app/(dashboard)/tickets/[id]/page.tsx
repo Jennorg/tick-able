@@ -30,15 +30,34 @@ export default async function TicketDetailPage({
     data: { user },
   } = await supabase.auth.getUser();
   const role = user?.user_metadata?.role || "user";
-  const isStaff = role === "admin" || role === "agent";
+  const isSuperAdmin = user?.user_metadata?.is_superadmin === true || role === "superadmin";
+  const isStaff = role === "admin" || role === "agent" || isSuperAdmin;
 
-  const { data: ticket } = await supabase
+  // Get user's organization_id
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("organization_id")
+    .eq("id", user?.id)
+    .single();
+
+  const orgId = profile?.organization_id;
+
+  let query = supabase
     .from("tickets")
     .select(
       "*, profiles!created_by(full_name, avatar_url, role), assigned_to_profile:profiles!assigned_to(full_name)",
     )
-    .eq("id", id)
-    .single();
+    .eq("id", id);
+
+  if (!isSuperAdmin) {
+    if (orgId) {
+      query = query.eq("organization_id", orgId);
+    } else {
+      query = query.eq("created_by", user?.id);
+    }
+  }
+
+  const { data: ticket } = await query.single();
 
   if (!ticket) {
     notFound();

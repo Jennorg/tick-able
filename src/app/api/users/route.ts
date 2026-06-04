@@ -9,17 +9,31 @@ export async function GET() {
     data: { user },
   } = await supabase.auth.getUser();
   const role = user?.user_metadata?.role;
+  const isSuperAdmin = user?.user_metadata?.is_superadmin === true || role === "superadmin";
 
-  if (role !== "admin" && role !== "agent") {
+  if (role !== "admin" && role !== "agent" && role !== "superadmin") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
-  // If agent, maybe only fetch other agents/admins?
-  // For simplicity and specified requirements, we'll fetch all profiles if staff
-  const { data, error } = await supabase
+  // Get user's organization_id
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("organization_id")
+    .eq("id", user?.id)
+    .single();
+
+  const orgId = profile?.organization_id;
+
+  let query = supabase
     .from("profiles")
     .select("*")
     .order("full_name");
+
+  if (!isSuperAdmin && orgId) {
+    query = query.eq("organization_id", orgId);
+  }
+
+  const { data, error } = await query;
 
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });

@@ -10,9 +10,12 @@ export async function PATCH(
 
   // Check role
   const {
-    data: { user: adminUser },
+    data: { user: currentUser },
   } = await supabase.auth.getUser();
-  if (adminUser?.user_metadata?.role !== "admin") {
+  const currentRole = currentUser?.user_metadata?.role;
+  const isSuperAdmin = currentUser?.user_metadata?.is_superadmin === true || currentRole === "superadmin";
+
+  if (currentRole !== "admin" && !isSuperAdmin) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
@@ -21,6 +24,25 @@ export async function PATCH(
 
   if (!role || !["admin", "agent", "user"].includes(role)) {
     return NextResponse.json({ error: "Invalid role" }, { status: 400 });
+  }
+
+  // If not superadmin, ensure the target user belongs to the same organization
+  if (!isSuperAdmin) {
+    const { data: adminProfile } = await supabase
+      .from("profiles")
+      .select("organization_id")
+      .eq("id", currentUser?.id)
+      .single();
+    
+    const { data: targetProfile } = await supabase
+      .from("profiles")
+      .select("organization_id")
+      .eq("id", id)
+      .single();
+
+    if (adminProfile?.organization_id !== targetProfile?.organization_id) {
+      return NextResponse.json({ error: "Unauthorized: User belongs to another organization" }, { status: 403 });
+    }
   }
 
   const { data, error } = await supabase

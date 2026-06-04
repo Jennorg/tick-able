@@ -7,6 +7,36 @@ export async function GET(
 ) {
   const supabase = await createClient();
   const { id } = await params;
+  
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const role = user?.user_metadata?.role;
+  const isSuperAdmin = user?.user_metadata?.is_superadmin === true || role === "superadmin";
+
+  // Check if user has access to this ticket
+  let ticketQuery = supabase.from("tickets").select("organization_id, created_by").eq("id", id);
+
+  if (!isSuperAdmin) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("organization_id")
+      .eq("id", user?.id)
+      .single();
+    
+    if (profile?.organization_id) {
+      ticketQuery = ticketQuery.eq("organization_id", profile.organization_id);
+    } else {
+      ticketQuery = ticketQuery.eq("created_by", user?.id);
+    }
+  }
+
+  const { data: ticket, error: ticketError } = await ticketQuery.single();
+
+  if (ticketError || !ticket) {
+    return NextResponse.json({ error: "Unauthorized or ticket not found" }, { status: 403 });
+  }
+
   const { data, error } = await supabase
     .from("comments")
     .select("*, profiles:author_id(full_name, avatar_url, role)")
@@ -30,6 +60,30 @@ export async function POST(
 
   if (!user)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const role = user?.user_metadata?.role;
+  const isSuperAdmin = user?.user_metadata?.is_superadmin === true || role === "superadmin";
+
+  // Check access to ticket
+  let ticketQuery = supabase.from("tickets").select("organization_id, created_by").eq("id", id);
+  if (!isSuperAdmin) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("organization_id")
+      .eq("id", user.id)
+      .single();
+    
+    if (profile?.organization_id) {
+      ticketQuery = ticketQuery.eq("organization_id", profile.organization_id);
+    } else {
+      ticketQuery = ticketQuery.eq("created_by", user.id);
+    }
+  }
+
+  const { data: ticket, error: ticketError } = await ticketQuery.single();
+  if (ticketError || !ticket) {
+    return NextResponse.json({ error: "Unauthorized or ticket not found" }, { status: 403 });
+  }
 
   const body = await request.json();
   const { content, is_internal } = body;

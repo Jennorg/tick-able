@@ -15,10 +15,31 @@ export default async function TicketsPage({
   const params = await searchParams;
   const { status, priority, category, q } = params;
 
+  const { data: { user } } = await supabase.auth.getUser();
+  const role = user?.user_metadata?.role || "user";
+  const isSuperAdmin = user?.user_metadata?.is_superadmin === true || role === "superadmin";
+
+  // Get organization_id from profile
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("organization_id")
+    .eq("id", user?.id)
+    .single();
+
+  const orgId = profile?.organization_id;
+
   let query = supabase
     .from("tickets")
     .select("*, profiles!created_by(full_name), categories(name)")
     .order("created_at", { ascending: false });
+
+  if (isSuperAdmin) {
+    // No filtering for superadmin
+  } else if (role === "user") {
+    query = query.eq("created_by", user?.id);
+  } else if (orgId) {
+    query = query.eq("organization_id", orgId);
+  }
 
   if (status) query = query.eq("status", status);
   if (priority) query = query.eq("priority", priority);
@@ -27,13 +48,11 @@ export default async function TicketsPage({
 
   const { data: tickets } = await query;
 
-  const { data: categories } = await supabase
-    .from("categories")
-    .select("*")
-    .order("name");
-
-  const { data: { user } } = await supabase.auth.getUser();
-  const role = user?.user_metadata?.role || "user";
+  let categoriesQuery = supabase.from("categories").select("*").order("name");
+  if (!isSuperAdmin && orgId) {
+    categoriesQuery = categoriesQuery.eq("organization_id", orgId);
+  }
+  const { data: categories } = await categoriesQuery;
 
   return (
     <div className="container mx-auto py-2">

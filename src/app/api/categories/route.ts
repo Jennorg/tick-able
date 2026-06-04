@@ -3,10 +3,30 @@ import { createClient } from "@/lib/supabase-server";
 
 export async function GET() {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("categories")
-    .select("*")
-    .order("name");
+  
+  // Check user and organization
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const role = user?.user_metadata?.role;
+  const isSuperAdmin = user?.user_metadata?.is_superadmin === true || role === "superadmin";
+
+  let query = supabase.from("categories").select("*").order("name");
+
+  if (!isSuperAdmin) {
+    // Try to get org from profile
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("organization_id")
+      .eq("id", user?.id)
+      .single();
+    
+    if (profile?.organization_id) {
+      query = query.eq("organization_id", profile.organization_id);
+    }
+  }
+
+  const { data, error } = await query;
 
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });
