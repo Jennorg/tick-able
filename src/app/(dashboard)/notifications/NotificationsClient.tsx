@@ -74,7 +74,7 @@ export function NotificationsClient({
         </div>
         {notifications.some((n) => !n.read) && (
           <Button
-            variant="outline"
+            variant="secondary"
             size="sm"
             onClick={markAllAsRead}
             className="text-xs"

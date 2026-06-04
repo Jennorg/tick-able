@@ -141,7 +141,7 @@ export default function LinkGeneratorPage() {
                   {generatedUrl}
                 </div>
                 <Button 
-                  variant="outline" 
+                  variant="secondary" 
                   className="w-full h-11 rounded-xl font-bold border-gray-200 hover:bg-white transition-all"
                   onClick={copyToClipboard}
                 >

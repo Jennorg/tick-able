@@ -86,7 +86,7 @@ export function PortalForm({
           </p>
           <Button 
             className="mt-6" 
-            variant="outline"
+            variant="secondary"
             onClick={() => window.location.reload()}
           >
             Enviar otra solicitud
