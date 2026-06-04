@@ -41,6 +41,7 @@ export async function proxy(request: NextRequest) {
     !user &&
     !pathname.startsWith("/login") &&
     !pathname.startsWith("/register") &&
+    !pathname.startsWith("/portal") &&
     pathname !== "/"
   ) {
     const loginUrl = new URL("/login", origin);
@@ -49,16 +50,26 @@ export async function proxy(request: NextRequest) {
 
   if (user) {
     if (pathname.startsWith("/login") || pathname.startsWith("/register")) {
-      const dashboardUrl = new URL("/dashboard", origin);
-      return NextResponse.redirect(dashboardUrl);
+      const targetUrl = role === "user" ? "/tickets" : "/dashboard";
+      return NextResponse.redirect(new URL(targetUrl, origin));
     }
+
+    const defaultRedirect = role === "user" ? "/tickets" : "/dashboard";
 
     // Role-based protection
     if (pathname.startsWith("/admin") && role !== "admin") {
-      return NextResponse.redirect(new URL("/dashboard", origin));
+      return NextResponse.redirect(new URL(defaultRedirect, origin));
+    }
+
+    if (pathname.startsWith("/dashboard") && role === "user") {
+      return NextResponse.redirect(new URL("/tickets", origin));
     }
 
     if (pathname.startsWith("/metrics") && role === "user") {
+      return NextResponse.redirect(new URL("/tickets", origin));
+    }
+
+    if (pathname.startsWith("/tickets/new") && role !== "user") {
       return NextResponse.redirect(new URL("/dashboard", origin));
     }
   }

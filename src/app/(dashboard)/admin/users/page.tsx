@@ -1,9 +1,10 @@
 "use client";
 
-import { Loader2, Mail, User as UserIcon } from "lucide-react";
+import { Loader2, Mail, User as UserIcon, Plus, Send, X, Copy, Check } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface Profile {
   id: string;
@@ -16,6 +17,12 @@ interface Profile {
 export default function UsersPage() {
   const [users, setUsers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState("agent");
+  const [inviting, setInviting] = useState(false);
+  const [inviteLink, setInviteLink] = useState("");
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -43,20 +50,66 @@ export default function UsersPage() {
     }
   }
 
+  async function handleInviteAgent(e: React.FormEvent) {
+    e.preventDefault();
+    setInviting(true);
+    
+    // In this simplified version, we'll generate a special registration link
+    // that includes the role and organization context.
+    // For a real app, this would send an email.
+    
+    try {
+      const res = await fetch("/api/auth/me");
+      const me = await res.json();
+      const orgSlug = me.organization?.slug;
+      
+      const baseUrl = window.location.origin;
+      // We encode the intent in the URL for the registration page to pick up
+      const params = new URLSearchParams();
+      params.set("role", inviteRole);
+      params.set("org", orgSlug);
+      params.set("invite", "true");
+      
+      const link = `${baseUrl}/register?${params.toString()}`;
+      setInviteLink(link);
+    } catch (err) {
+      console.error("Error generating invite:", err);
+    } finally {
+      setInviting(false);
+    }
+  }
+
+  const copyInvite = () => {
+    navigator.clipboard.writeText(inviteLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-[#2b2d42]">
-          Gestión de Usuarios
-        </h1>
-        <p className="text-[#8d99ae]">
-          Administra los roles y permisos de los usuarios.
-        </p>
+    <div className="space-y-6 animate-in fade-in duration-300">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-[#2b2d42]">
+            Gestión de Usuarios
+          </h1>
+          <p className="text-[#8d99ae]">
+            Administra los roles y permisos de tu equipo de soporte.
+          </p>
+        </div>
+        <Button 
+          onClick={() => {
+            setShowInviteModal(true);
+            setInviteLink("");
+          }}
+          className="bg-[#ef233c] hover:bg-red-700"
+        >
+          <Plus className="h-4 w-4 mr-2" /> Invitar Agente
+        </Button>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Usuarios</CardTitle>
+          <CardTitle>Miembros del Equipo</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -127,6 +180,75 @@ export default function UsersPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Invite Modal */}
+      {showInviteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="max-w-md w-full animate-in zoom-in duration-200">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Invitar nuevo miembro</CardTitle>
+              <button onClick={() => setShowInviteModal(false)} className="text-gray-400 hover:text-gray-600">
+                <X className="h-5 w-5" />
+              </button>
+            </CardHeader>
+            <CardContent>
+              {!inviteLink ? (
+                <form onSubmit={handleInviteAgent} className="space-y-4">
+                  <div>
+                    <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Email del Agente</label>
+                    <Input 
+                      type="email" 
+                      placeholder="agente@empresa.com" 
+                      required 
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Rol Asignado</label>
+                    <select 
+                      className="w-full h-10 border rounded-md px-3 text-sm"
+                      value={inviteRole}
+                      onChange={(e) => setInviteRole(e.target.value)}
+                    >
+                      <option value="agent">Agente de Soporte</option>
+                      <option value="admin">Administrador</option>
+                    </select>
+                  </div>
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-[#ef233c] hover:bg-red-700"
+                    disabled={inviting}
+                  >
+                    {inviting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
+                    Generar Invitación
+                  </Button>
+                </form>
+              ) : (
+                <div className="space-y-4">
+                  <div className="p-3 bg-green-50 text-green-700 text-xs rounded-lg border border-green-100 flex items-center gap-2">
+                    <Check className="h-4 w-4" /> Invitación generada con éxito.
+                  </div>
+                  <p className="text-sm text-gray-600">Envía este enlace al nuevo miembro para que se registre directamente en tu organización:</p>
+                  <div className="flex gap-2">
+                    <Input readOnly value={inviteLink} className="text-xs" />
+                    <Button variant="outline" size="icon" onClick={copyInvite}>
+                      {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => setShowInviteModal(false)}
+                  >
+                    Cerrar
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
