@@ -42,6 +42,7 @@ export async function proxy(request: NextRequest) {
     !pathname.startsWith("/login") &&
     !pathname.startsWith("/register") &&
     !pathname.startsWith("/portal") &&
+    !pathname.startsWith("/api") &&
     pathname !== "/"
   ) {
     const loginUrl = new URL("/login", origin);

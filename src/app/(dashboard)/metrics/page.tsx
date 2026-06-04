@@ -48,8 +48,13 @@ export default function MetricsPage() {
 
   useEffect(() => {
     fetch("/api/metrics")
-      .then((res) => res.json())
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Failed to fetch metrics");
+        const text = await res.text();
+        return text ? JSON.parse(text) : null;
+      })
       .then(setData)
+      .catch((err) => console.error("Metrics load error:", err))
       .finally(() => setLoading(false));
   }, []);
 

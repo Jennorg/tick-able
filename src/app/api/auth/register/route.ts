@@ -3,20 +3,20 @@ import { createServiceClient } from "@/lib/supabase-service";
 import { createClient } from "@/lib/supabase-server";
 
 export async function POST(request: Request) {
-  const body = await request.json();
-  const { email, password, fullName, companyName, orgSlug, role, isInvite } = body;
-
-  if (!email || !password || !fullName || (!companyName && !isInvite)) {
-    return NextResponse.json(
-      { error: "Todos los campos son obligatorios" },
-      { status: 400 },
-    );
-  }
-
-  const supabase = await createClient();
-  const supabaseService = createServiceClient();
-
   try {
+    const body = await request.json();
+    const { email, password, fullName, companyName, orgSlug, role, isInvite } = body;
+
+    if (!email || !password || !fullName || (!companyName && !isInvite)) {
+      return NextResponse.json(
+        { error: "Todos los campos son obligatorios" },
+        { status: 400 },
+      );
+    }
+
+    const supabase = await createClient();
+    const supabaseService = createServiceClient();
+
     let finalOrgId = null;
     let finalRole = isInvite ? (role || "agent") : "admin";
 
@@ -35,8 +35,6 @@ export async function POST(request: Request) {
     }
 
     // 2. Sign up the user
-    // We pass the organization_id and role in metadata so the DB trigger (handle_new_user)
-    // can link them automatically and securely.
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
@@ -44,7 +42,7 @@ export async function POST(request: Request) {
         data: {
           full_name: fullName,
           role: finalRole,
-          organization_id: finalOrgId, // Only present if isInvite
+          organization_id: finalOrgId,
         },
       },
     });
@@ -96,7 +94,7 @@ export async function POST(request: Request) {
   } catch (err: any) {
     console.error("Registration error:", err);
     return NextResponse.json({ 
-      error: "Ocurrió un error inesperado durante el registro."
+      error: err.message || "Ocurrió un error inesperado durante el registro."
     }, { status: 500 });
   }
 }

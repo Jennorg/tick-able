@@ -25,12 +25,16 @@ export default function LinkGeneratorPage() {
     async function fetchData() {
       try {
         const res = await fetch("/api/categories");
-        const data = await res.json();
-        setCategories(data || []);
+        if (res.ok) {
+          const text = await res.text();
+          const data = text ? JSON.parse(text) : [];
+          setCategories(data || []);
+        }
 
         const profileRes = await fetch("/api/auth/me");
         if (profileRes.ok) {
-          const authData = await profileRes.json();
+          const text = await profileRes.text();
+          const authData = text ? JSON.parse(text) : {};
           if (authData.organization?.slug) {
             setOrgSlug(authData.organization.slug);
           }

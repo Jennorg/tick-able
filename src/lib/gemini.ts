@@ -80,15 +80,31 @@ Descripción: ${description.slice(0, 1000)}`;
   const tokensUsed = response.usageMetadata?.totalTokenCount || 0;
   
   // Robust JSON parsing: strip Markdown code blocks if present
-  const text = response.text().replace(/```json\n?/, "").replace(/\n?```/, "").trim();
-  const data = JSON.parse(text);
+  let text = "";
+  try {
+    text = response.text().replace(/```json\n?/, "").replace(/\n?```/, "").trim();
+  } catch (e) {
+    console.error("Error getting text from Gemini response:", e);
+    throw new Error("Failed to get text from Gemini");
+  }
 
-  return {
-    data,
-    latency,
-    tokensUsed,
-    prompt,
-  };
+  if (!text) {
+    console.error("Gemini returned an empty response");
+    throw new Error("Gemini returned an empty response");
+  }
+
+  try {
+    const data = JSON.parse(text);
+    return {
+      data,
+      latency,
+      tokensUsed,
+      prompt,
+    };
+  } catch (e) {
+    console.error("Failed to parse Gemini JSON:", text);
+    throw new Error("Invalid JSON returned from Gemini");
+  }
 }
 
 export async function selectBestAgent(ticketTitle: string, agentsPerformance: any[]) {
@@ -103,13 +119,29 @@ ${JSON.stringify(agentsPerformance, null, 2)}`;
   const tokensUsed = response.usageMetadata?.totalTokenCount || 0;
 
   // Robust JSON parsing: strip Markdown code blocks if present
-  const text = response.text().replace(/```json\n?/, "").replace(/\n?```/, "").trim();
-  const data = JSON.parse(text);
+  let text = "";
+  try {
+    text = response.text().replace(/```json\n?/, "").replace(/\n?```/, "").trim();
+  } catch (e) {
+    console.error("Error getting text from Gemini response:", e);
+    throw new Error("Failed to get text from Gemini");
+  }
 
-  return {
-    selectedAgentId: data.selectedAgentId,
-    reasoning: data.reasoning,
-    latency,
-    tokensUsed,
-  };
+  if (!text) {
+    console.error("Gemini returned an empty response");
+    throw new Error("Gemini returned an empty response");
+  }
+
+  try {
+    const data = JSON.parse(text);
+    return {
+      selectedAgentId: data.selectedAgentId,
+      reasoning: data.reasoning,
+      latency,
+      tokensUsed,
+    };
+  } catch (e) {
+    console.error("Failed to parse Gemini JSON (agent selection):", text);
+    throw new Error("Invalid JSON returned from Gemini during agent selection");
+  }
 }

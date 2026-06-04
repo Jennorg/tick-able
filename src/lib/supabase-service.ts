@@ -10,6 +10,7 @@ export function createServiceClient() {
   // Falls back to anon key if service key not available (read-only ops only)
   const key =
     process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_SERVICE_KEY ||
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
   return createClient(url, key, {

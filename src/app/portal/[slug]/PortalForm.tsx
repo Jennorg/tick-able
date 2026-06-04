@@ -61,8 +61,17 @@ export function PortalForm({
       });
 
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Ocurrió un error al enviar tu solicitud");
+        let errorMsg = "Ocurrió un error al enviar tu solicitud";
+        try {
+          const text = await res.text();
+          if (text) {
+            const data = JSON.parse(text);
+            errorMsg = data.error || errorMsg;
+          }
+        } catch (e) {
+          console.error("Error parsing error response:", e);
+        }
+        throw new Error(errorMsg);
       }
 
       setSubmitted(true);

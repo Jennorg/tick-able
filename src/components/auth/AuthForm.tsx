@@ -93,7 +93,21 @@ export function AuthForm({ mode }: AuthFormProps) {
         }),
       });
 
-      const data = await res.json();
+      let data: any = {};
+      const text = await res.text();
+      try {
+        if (text) {
+          data = JSON.parse(text);
+        }
+      } catch (e) {
+        console.error("Error parsing registration response:", e);
+        // If it's HTML, it probably starts with <!DOCTYPE or <html
+        const isHtml = text.trim().startsWith("<");
+        if (isHtml) {
+          throw new Error(`El servidor devolvió una página HTML en lugar de JSON. Probablemente un error 500 o 404. Comienzo: ${text.substring(0, 50)}...`);
+        }
+        throw new Error(`Error al procesar la respuesta del servidor: ${text.substring(0, 50)}...`);
+      }
 
       if (!res.ok) {
         throw new Error(data.error || "Error al registrarse");

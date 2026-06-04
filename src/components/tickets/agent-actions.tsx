@@ -27,7 +27,11 @@ export function AgentActions({
     });
 
     fetch("/api/users")
-      .then((res) => res.json())
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Failed to fetch users");
+        const text = await res.text();
+        return text ? JSON.parse(text) : [];
+      })
       .then((data) => {
         if (Array.isArray(data)) {
           // Filter to only show agents and admins
@@ -35,7 +39,8 @@ export function AgentActions({
             data.filter((u) => u.role === "agent" || u.role === "admin"),
           );
         }
-      });
+      })
+      .catch((err) => console.error("Error loading agents:", err));
   }, []);
 
   async function handleUpdate(updates: any, actionName: string) {

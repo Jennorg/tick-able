@@ -25,10 +25,17 @@ export default function CategoriesPage() {
   }, []);
 
   async function fetchCategories() {
-    const res = await fetch("/api/categories");
-    const data = await res.json();
-    setCategories(data);
-    setLoading(false);
+    try {
+      const res = await fetch("/api/categories");
+      if (!res.ok) throw new Error("Failed to fetch categories");
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : [];
+      setCategories(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleCreate(e: React.FormEvent) {

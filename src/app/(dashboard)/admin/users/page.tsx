@@ -29,10 +29,17 @@ export default function UsersPage() {
   }, []);
 
   async function fetchUsers() {
-    const res = await fetch("/api/users");
-    const data = await res.json();
-    if (Array.isArray(data)) setUsers(data);
-    setLoading(false);
+    try {
+      const res = await fetch("/api/users");
+      if (!res.ok) throw new Error("Failed to fetch users");
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : [];
+      if (Array.isArray(data)) setUsers(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleRoleChange(userId: string, newRole: string) {
@@ -60,7 +67,9 @@ export default function UsersPage() {
     
     try {
       const res = await fetch("/api/auth/me");
-      const me = await res.json();
+      if (!res.ok) throw new Error("Failed to fetch profile");
+      const text = await res.text();
+      const me = text ? JSON.parse(text) : {};
       const orgSlug = me.organization?.slug;
       
       const baseUrl = window.location.origin;

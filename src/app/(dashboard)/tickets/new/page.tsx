@@ -18,12 +18,17 @@ export default function NewTicketPage() {
 
   useEffect(() => {
     fetch("/api/categories")
-      .then((res) => res.json())
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Failed to fetch categories");
+        const text = await res.text();
+        return text ? JSON.parse(text) : [];
+      })
       .then((data) => {
         if (Array.isArray(data)) {
           setCategories(data.map((c: any) => ({ label: c.name, value: c.id })));
         }
-      });
+      })
+      .catch((err) => console.error("Error loading categories:", err));
   }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -45,7 +50,16 @@ export default function NewTicketPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      const data = await res.json();
+
+      let data: any = {};
+      const text = await res.text();
+      if (text) {
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          console.error("Failed to parse response JSON:", text);
+        }
+      }
 
       if (!res.ok) {
         throw new Error(data.error || "Ocurrió un error al crear el ticket");
